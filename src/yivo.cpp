@@ -1,4 +1,5 @@
 #include <yivo/yivo.h>
+#include <stdexcept>
 
 Packet::Packet(uint8_t id, uint8_t len){
     pkt.reserve(len+5);
