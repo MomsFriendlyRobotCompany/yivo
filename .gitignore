@@ -1,4 +1,7 @@
 build
+dist
+*.egg-info
+poetry.lock
 .DS_Store
 ._*
 *.pyc

@@ -1,9 +1,33 @@
+/******************************************************************************
+MIT License
+
+Copyright (c) 2020 Mom's Friendly Robot Company
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
 #pragma once
 
 #include <vector>
 #include <stdint.h>
-#include <strings.h> // memset
-#include <exception>
+// #include <strings.h> // memset
+// #include <exception>
 
 #define HEADER   255
 #define IMU_MSG    2
@@ -11,6 +35,9 @@
 #define LIGHT_MSG  8
 #define IR_MSG    16
 
+/*
+Packet construction class.
+*/
 class Packet {
 public:
     /*
@@ -29,8 +56,6 @@ public:
     void end();
     uint8_t compute_checksum();
 
-    // float to_float(int i);
-
     static bool valid_checksum(const std::vector<uint8_t>& v){
         uint32_t checksum = 0;
         size_t len = v.size()-1;
@@ -42,18 +67,17 @@ public:
     std::vector<uint8_t> pkt;
 };
 
-// std::ostream &operator<<(std::ostream &os, Packet const &p) {
-//     // for (uint8_t const& u: p.pkt) os << std::hex << int(u) << ",";
-//     for (uint8_t const& u: p.pkt) os << int(u) << ",";
-//     os << " ";
-//     return os;
-// }
-
+/*
+Base class for other messages.
+*/
 class SerialLib {
 public:
     float to_float(const std::vector<uint8_t>& p, int i);
 };
 
+/*
+9DOF Inertial Measurement Unit sensor message
+*/
 class IMU: public SerialLib {
 public:
     IMU();
@@ -65,8 +89,6 @@ public:
     const Packet serialize();
     void deserialize(const std::vector<uint8_t>& p);
 
-    // float to_float(const std::vector<uint8_t>& p, int i);
-
     float ax,ay,az; // 4*3 = 12
     float gx,gy,gz; // 12
     float mx,my,mz; // 12
@@ -75,6 +97,9 @@ public:
                     // total = 45
 };
 
+/*
+Pressure and temperature sensor message.
+*/
 class PT: public SerialLib {
 public:
     PT();

@@ -1,21 +1,7 @@
-![](docs/yivo.png)
+/******************************************************************************
+MIT License
 
-![Cpp](https://github.com/MomsFriendlyRobotCompany/yivo/workflows/Cpp/badge.svg)
-![GitHub](https://img.shields.io/github/license/MomsFriendlyRobotCompany/yivo)
-
-# Yivo
-
-**Work in Progress**
-
-## ToDo
-
-- [ ] Write tests
-- [ ] Create python library
-
-
-# MIT License
-
-**Copyright (c) 2020 Mom's Friendly Robot Company**
+Copyright (c) 2020 Mom's Friendly Robot Company
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,3 +20,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+******************************************************************************/
+#include <yivo/yivo.h>
+
+float SerialLib::to_float(const std::vector<uint8_t>& p, int i){
+    uint32_t temp = 0;
+    temp = ((p[i]   << 24) |
+            (p[i+1] << 16) |
+            (p[i+2] <<  8) |
+             p[i+3]);
+    return *((float*) &temp);
+}

@@ -1,16 +1,6 @@
-![](docs/yivo.png)
-
-![Cpp](https://github.com/MomsFriendlyRobotCompany/yivo/workflows/Cpp/badge.svg)
-![GitHub](https://img.shields.io/github/license/MomsFriendlyRobotCompany/yivo)
+![](../docs/yivo.png)
 
 # Yivo
-
-**Work in Progress**
-
-## ToDo
-
-- [ ] Write tests
-- [ ] Create python library
 
 
 # MIT License

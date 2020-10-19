@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-PROJECT(yivo VERSION "0.0.1")
+PROJECT(yivo VERSION "0.1.0")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,7 +20,12 @@ message(STATUS " ${OSN}: ${OS_VERSION}")
 message(STATUS " ${PROC}")
 message(STATUS "-------------------------------------")
 
-add_library(${PROJECT_NAME} src/yivo.cpp)
+add_library(${PROJECT_NAME}
+    src/packet.cpp
+    src/seriallib.cpp
+    src/imu.cpp
+    src/pt.cpp
+)
 target_include_directories(${PROJECT_NAME}
     PUBLIC
         src/
