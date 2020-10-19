@@ -1,0 +1,15 @@
+name: Cpp
+on: [push]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@master
+            - name: Test yivo
+              run: |
+                mkdir -p build
+                cd build
+                cmake ..
+                make
+                ./gtests/all-gtest
