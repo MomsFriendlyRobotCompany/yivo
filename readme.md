@@ -1,5 +1,8 @@
 ![](docs/yivo.png)
 
+![Cpp](https://github.com/MomsFriendlyRobotCompany/yivo/workflows/Cpp/badge.svg)
+![GitHub](https://img.shields.io/github/license/MomsFriendlyRobotCompany/yivo)
+
 # Yivo
 
 **Work in Progress**
