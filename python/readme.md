@@ -1,4 +1,4 @@
-![](../docs/yivo.png)
+![](https://raw.githubusercontent.com/MomsFriendlyRobotCompany/yivo/main/docs/yivo.png)
 
 # Yivo
 
