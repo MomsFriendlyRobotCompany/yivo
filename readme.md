@@ -7,6 +7,11 @@
 
 **Work in Progress**
 
+## Why?
+
+- Sending different serial messages from a uC at different sample rates is confusing
+    - Example: accelerometer@100Hz, gyros@200Hz, magnetometer@50Hz
+
 ## ToDo
 
 - [ ] Write tests

@@ -1,8 +1,9 @@
-// Basic demo for accelerometer/gyro readings from Adafruit LSM6DS33
-
 #include <Adafruit_LSM6DS33.h>
 #include <Adafruit_LIS3MDL.h>
 #include <Adafruit_LPS2X.h>
+#include "AHRS_Madgwick.h"
+
+Madgwick ahrs;
 
 const lsm6ds_data_rate_t accel_data_rate = LSM6DS_RATE_104_HZ;
 const lsm6ds_accel_range_t accel_range   = LSM6DS_ACCEL_RANGE_2_G;
@@ -35,7 +36,7 @@ public:
         unsigned long delta = now - last;
         if (delta >= period) {
             last = now;
-            return true;
+            return;
         }
         delay(delta);
         last = millis();
@@ -60,7 +61,10 @@ Rate magnetic(25);
 Rate prestemp(100);
 
 void setup(void) {
-    Serial.begin(115200);
+    // Serial.begin(115200);
+    // Serial.begin(230400);
+    Serial.begin(1000000);
+
     while (!Serial)
         delay(1000); // will pause until serial console opens
 
@@ -111,49 +115,69 @@ void setup(void) {
 void loop() {
     imu.getEvent(&accel, &gyro, &temp);
 
+    ahrs.update(
+        gyro.gyro.x,gyro.gyro.y,gyro.gyro.z,
+        accel.acceleration.x,accel.acceleration.y,accel.acceleration.z,
+        me.magnetic.x,me.magnetic.y,me.magnetic.z
+    );
+
+    float w,x,y,z;
+    ahrs.getQuaternion(&w,&x,&y,&z);
+    // Serial.print("Quat: [");
+    Serial.print(w);
+    Serial.print(", ");
+    Serial.print(x);
+    Serial.print(", ");
+    Serial.print(y);
+    Serial.print(", ");
+    Serial.print(z);
+    // Serial.println("]");
+
     if (prestemp.fire()){
         pt.getEvent(&pres, &temp); // get pressure/temp
 
-        Serial.print("PT: ");
-        Serial.print(pres.pressure);
-        Serial.print(" hPa, ");
-        Serial.print(temp.temperature);
-        Serial.println(" C");
+        // Serial.print("PT: ");
+        // Serial.print(pres.pressure);
+        // Serial.print(" hPa, ");
+        // Serial.print(temp.temperature);
+        // Serial.println(" C");
     }
 
-    // Display the results (acceleration is measured in m/s^2)
-    Serial.print("A: [");
-    Serial.print(accel.acceleration.x);
-    Serial.print(", ");
-    Serial.print(accel.acceleration.y);
-    Serial.print(", ");
-    Serial.print(accel.acceleration.z);
-    Serial.println("] m/s^2 ");
-
-    // Display the results (rotation is measured in rad/s)
-    Serial.print("G: [");
-    Serial.print(gyro.gyro.x);
-    Serial.print(", ");
-    Serial.print(gyro.gyro.y);
-    Serial.print(", ");
-    Serial.print(gyro.gyro.z);
-    Serial.println("] radians/s ");
+    // // Display the results (acceleration is measured in m/s^2)
+    // Serial.print("A: [");
+    // Serial.print(accel.acceleration.x);
+    // Serial.print(", ");
+    // Serial.print(accel.acceleration.y);
+    // Serial.print(", ");
+    // Serial.print(accel.acceleration.z);
+    // Serial.println("] m/s^2 ");
+    //
+    // // Display the results (rotation is measured in rad/s)
+    // Serial.print("G: [");
+    // Serial.print(gyro.gyro.x);
+    // Serial.print(", ");
+    // Serial.print(gyro.gyro.y);
+    // Serial.print(", ");
+    // Serial.print(gyro.gyro.z);
+    // Serial.println("] radians/s ");
 
     if (magnetic.fire()) {
         mag.getEvent(&me);
 
-        Serial.print("M: [");
-        Serial.print(me.magnetic.x);
-        Serial.print(", ");
-        Serial.print(me.magnetic.y);
-        Serial.print(", ");
-        Serial.print(me.magnetic.z);
-        Serial.println("] uT ");
+        // Serial.print("M: [");
+        // Serial.print(me.magnetic.x);
+        // Serial.print(", ");
+        // Serial.print(me.magnetic.y);
+        // Serial.print(", ");
+        // Serial.print(me.magnetic.z);
+        // Serial.println("] uT ");
     }
 
     unsigned long step = millis();
-    Serial.print("TS:");
+    // Serial.print("TS:");
+    Serial.print(",");
     Serial.print(step - time_stamp);
-    Serial.println(" msec --------------------------");
+    // Serial.println(" msec --------------------------");
     time_stamp = step;
+    Serial.println();
 }
