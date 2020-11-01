@@ -1,6 +1,12 @@
 import struct
 from serial import Serial
 
+def check_sum(data):
+    """
+    checksum = 255 - ((id + length + data1 + data2 + ... + dataN) & 255)
+    """
+    # print(data)
+    return 255 - (sum(data) & 255)
 
 def read_serial(ser):
     # ff,ff,id,len

@@ -74,3 +74,11 @@ uint8_t Packet::compute_checksum(){
     for (uint8_t i = 2; i < pkt.size(); ++i) checksum += pkt[i];
     return (~checksum) & 0xFF;
 }
+
+bool Packet::valid_checksum(const std::vector<uint8_t>& v){
+    uint32_t checksum = 0;
+    size_t len = v.size()-1;
+    for (uint8_t i = 2; i < len; ++i) checksum += v[i];
+    uint8_t ans = (~checksum) & 0xFF;
+    return ans == v[len];
+}
