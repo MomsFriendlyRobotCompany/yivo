@@ -25,6 +25,7 @@ SOFTWARE.
 #pragma once
 
 #include <vector>
+#include <string>
 #include <stdint.h>
 // #include <strings.h> // memset
 // #include <exception>
@@ -37,7 +38,17 @@ SOFTWARE.
 
 /*
 Packet construction class.
+
+b sint8
+B uint8
+h sint16
+H uint16
+i sint32
+I uint32
+f float[4]
+d double[8]
 */
+
 class Packet {
 public:
     /*
@@ -46,24 +57,29 @@ public:
     len: number of parameters, no counting header(2), id(1), len(1), checksum(1)
     */
     Packet(uint8_t id, uint8_t len);
+    Packet(uint8_t id, const std::string& fmt);
 
     int size();
-    void push(const int& a);
-    void push(const char& a);
+    // void push(const int& a);
+    // void push(const char& a);
     void push(const uint8_t& a);
+    void push(const int8_t& a);
     void push(uint16_t a);
+    void push(int16_t a);
+    void push(uint32_t a);
+    void push(int32_t a);
     void push(float f);
     void end();
     uint8_t compute_checksum();
-    bool valid_checksum(const std::vector<uint8_t>& v);
+    // bool valid_checksum(const std::vector<uint8_t>& v);
 
-    // static bool valid_checksum(const std::vector<uint8_t>& v){
-    //     uint32_t checksum = 0;
-    //     size_t len = v.size()-1;
-    //     for (uint8_t i = 2; i < len; ++i) checksum += v[i];
-    //     uint8_t ans = (~checksum) & 0xFF;
-    //     return ans == v[len];
-    // }
+    static bool valid_checksum(const std::vector<uint8_t>& v){
+        uint32_t checksum = 0;
+        size_t len = v.size()-1;
+        for (uint8_t i = 2; i < len; ++i) checksum += v[i];
+        uint8_t ans = (~checksum) & 0xFF;
+        return ans == v[len];
+    }
 
     std::vector<uint8_t> pkt;
 };
