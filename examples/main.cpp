@@ -50,6 +50,7 @@ d double [8]
 typedef struct {
     int id;
     std::vector<uint8_t> data;
+    // std::array<uint8_t> data;
 } Raw;
 
 bool find_packet(const std::vector<uint8_t>& buf, std::vector<Raw>& vr){
@@ -62,7 +63,9 @@ bool find_packet(const std::vector<uint8_t>& buf, std::vector<Raw>& vr){
             Raw r;
             r.id = b; // i => id
             int len = buf[i+1]; // i+1 => len
+            r.data.reserve(len);
             uint32_t chksum = 0;
+            // int ii = 0;
             for (int j = i+2; j<i+len+1; ++j){
                 uint8_t d = buf[j];
                 chksum += d;
@@ -82,9 +85,12 @@ bool find_packet(const std::vector<uint8_t>& buf, std::vector<Raw>& vr){
     return ret;
 }
 
+
+
 // int32_t to_int32()
 
 int main(){
+    SerialLib s;
     Packet pkt(22, "fff");
     pkt.push(10.0f);
     pkt.push(-3.14567890f);
@@ -93,7 +99,7 @@ int main(){
     cout << ">> " << pkt << endl;
 
     Packet p2(33, "bIH");
-    p2.push((int8_t)-25);
+    p2.push((int8_t)-125);
     p2.push((uint32_t)3000);
     p2.push((uint16_t)1600);
     p2.end();
@@ -115,14 +121,8 @@ int main(){
             if (r.id == 33){
                 cout << "ID: " << r.id << endl;
                 cout << "|-> " << int(int8_t(r.data[0])) << endl;
-                uint32_t tmp = (
-                    (r.data[1]   << 24) |
-                    (r.data[2] << 16) |
-                    (r.data[3] <<  8) |
-                     r.data[4]);
-                cout << "|-> " << *((uint32_t*) &tmp) << endl;
-                tmp = ((r.data[5] <<  8) | r.data[6]);
-                cout << "|-> " << *((uint16_t*) &tmp) << endl;
+                cout << "|-> " << s.to_uint32(r.data, 1) << endl;
+                cout << "|-> " << s.to_uint16(r.data, 5) << endl;
             }
         }
     }

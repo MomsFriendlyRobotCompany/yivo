@@ -21,30 +21,30 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************/
-#include <yivo/yivo.h>
-#include <exception>
-#include <stdexcept>
-
-
-PT::PT(){}
-
-const Packet PT::serialize(){
-
-    Packet pkt(PT_MSG,2*4);
-    // 0xff
-    // 0xff
-    // id
-    // len
-    pkt.push(pressure);    // 4
-    pkt.push(temperature); // 8
-    pkt.end();
-
-    return pkt;
-}
-void PT::deserialize(const std::vector<uint8_t>& p){
-    if (p[0] != 0xff || p[1] != 0xff || p[2] != PT_MSG) throw std::runtime_error("invalide packet");
-    if (!Packet::valid_checksum(p)) throw std::runtime_error("invalide packet");
-
-    pressure = to_float(p, 4);
-    temperature = to_float(p, 8);
-}
+// #include <yivo/yivo.h>
+// #include <exception>
+// #include <stdexcept>
+//
+//
+// PT::PT(){}
+//
+// const Packet PT::serialize(){
+//
+//     Packet pkt(PT_MSG,2*4);
+//     // 0xff
+//     // 0xff
+//     // id
+//     // len
+//     pkt.push(pressure);    // 4
+//     pkt.push(temperature); // 8
+//     pkt.end();
+//
+//     return pkt;
+// }
+// void PT::deserialize(const std::vector<uint8_t>& p){
+//     if (p[0] != 0xff || p[1] != 0xff || p[2] != PT_MSG) throw std::runtime_error("invalide packet");
+//     if (!Packet::valid_checksum(p)) throw std::runtime_error("invalide packet");
+//
+//     pressure = to_float(p, 4);
+//     temperature = to_float(p, 8);
+// }

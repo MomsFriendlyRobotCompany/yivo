@@ -90,39 +90,43 @@ Base class for other messages.
 class SerialLib {
 public:
     float to_float(const std::vector<uint8_t>& p, int i);
+    uint32_t to_uint32(const std::vector<uint8_t>& p, int i);
+    int32_t to_int32(const std::vector<uint8_t>& p, int i);
+    uint16_t to_uint16(const std::vector<uint8_t>& p, int i);
+    int16_t to_int16(const std::vector<uint8_t>& p, int i);
 };
-
-/*
-9DOF Inertial Measurement Unit sensor message
-*/
-class IMU: public SerialLib {
-public:
-    IMU();
-
-    void accels(const float& x, const float& y, const float& z);
-    void gyros(const float& x, const float& y, const float& z);
-    void mags(const float& x, const float& y, const float& z);
-
-    const Packet serialize();
-    void deserialize(const std::vector<uint8_t>& p);
-
-    float ax,ay,az; // 4*3 = 12
-    float gx,gy,gz; // 12
-    float mx,my,mz; // 12
-    float temp;     // 4
-                    // params = 40
-                    // total = 45
-};
-
-/*
-Pressure and temperature sensor message.
-*/
-class PT: public SerialLib {
-public:
-    PT();
-
-    const Packet serialize();
-    void deserialize(const std::vector<uint8_t>& p);
-
-    float pressure, temperature;
-};
+//
+// /*
+// 9DOF Inertial Measurement Unit sensor message
+// */
+// class IMU: public SerialLib {
+// public:
+//     IMU();
+//
+//     void accels(const float& x, const float& y, const float& z);
+//     void gyros(const float& x, const float& y, const float& z);
+//     void mags(const float& x, const float& y, const float& z);
+//
+//     const Packet serialize();
+//     void deserialize(const std::vector<uint8_t>& p);
+//
+//     float ax,ay,az; // 4*3 = 12
+//     float gx,gy,gz; // 12
+//     float mx,my,mz; // 12
+//     float temp;     // 4
+//                     // params = 40
+//                     // total = 45
+// };
+//
+// /*
+// Pressure and temperature sensor message.
+// */
+// class PT: public SerialLib {
+// public:
+//     PT();
+//
+//     const Packet serialize();
+//     void deserialize(const std::vector<uint8_t>& p);
+//
+//     float pressure, temperature;
+// };

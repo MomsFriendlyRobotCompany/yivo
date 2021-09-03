@@ -23,11 +23,42 @@ SOFTWARE.
 ******************************************************************************/
 #include <yivo/yivo.h>
 
-float SerialLib::to_float(const std::vector<uint8_t>& p, int i){
+uint32_t SerialLib::to_uint32(const std::vector<uint8_t>& p, int i){
     uint32_t temp = 0;
     temp = ((p[i]   << 24) |
             (p[i+1] << 16) |
             (p[i+2] <<  8) |
              p[i+3]);
+    return temp;
+}
+
+int32_t SerialLib::to_int32(const std::vector<uint8_t>& p, int i){
+    uint32_t temp = 0;
+    temp = ((p[i]   << 24) |
+            (p[i+1] << 16) |
+            (p[i+2] <<  8) |
+             p[i+3]);
+    // return temp;
+    return *reinterpret_cast<int32_t*>(&temp);
+}
+
+uint16_t SerialLib::to_uint16(const std::vector<uint8_t>& p, int i){
+    uint16_t temp = ((p[i] << 8) | p[i+1]);
+    // return *((uint16_t*) &temp);
+    return temp;
+}
+
+int16_t SerialLib::to_int16(const std::vector<uint8_t>& p, int i){
+    uint16_t temp = ((p[i] << 8) | p[i+1]);
+    return *((int16_t*) &temp);
+}
+
+float SerialLib::to_float(const std::vector<uint8_t>& p, int i){
+    // uint32_t temp = 0;
+    // temp = ((p[i]   << 24) |
+    //         (p[i+1] << 16) |
+    //         (p[i+2] <<  8) |
+    //          p[i+3]);
+    uint32_t temp = to_uint32(p,i);
     return *((float*) &temp);
 }
