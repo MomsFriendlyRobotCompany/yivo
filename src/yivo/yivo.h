@@ -29,11 +29,14 @@ SOFTWARE.
 // #include <strings.h> // memset
 // #include <exception>
 
-#define HEADER   255
-#define IMU_MSG    2
-#define PT_MSG     4
-#define LIGHT_MSG  8
-#define IR_MSG    16
+#define HEADER    255
+#define IMU_MSG     2
+#define PT_MSG      4
+#define LIGHT_MSG   8
+#define IR_MSG     16
+#define POSE_MSG   16
+#define TWIST_MSG  16
+#define WRENCH_MSG 16
 
 /*
 Packet construction class.
@@ -55,7 +58,7 @@ public:
     void push(float f);
     void end();
     uint8_t compute_checksum();
-    bool valid_checksum(const std::vector<uint8_t>& v);
+    static bool valid_checksum(const std::vector<uint8_t>& v);
 
     // static bool valid_checksum(const std::vector<uint8_t>& v){
     //     uint32_t checksum = 0;
@@ -109,4 +112,40 @@ public:
     void deserialize(const std::vector<uint8_t>& p);
 
     float pressure, temperature;
+};
+
+/*
+Position and orientation
+*/
+class Pose: public SerialLib {
+public:
+    Pose();
+    const Packet serialize();
+    void deserialize(const std::vector<uint8_t>& p);
+    float x,y,z;
+    float q0,q1,q2,q3;
+};
+
+/*
+Linear and angular velocity
+*/
+class Twist: public SerialLib {
+public:
+    Twist();
+    const Packet serialize();
+    void deserialize(const std::vector<uint8_t>& p);
+    float vx, vy, vz; // linear velocity
+    float p, q, r; // angular velocity - FIXME: right variables?
+};
+
+/*
+Force and Torqu
+*/
+class Wrench: public SerialLib {
+public:
+    Wrench();
+    const Packet serialize();
+    void deserialize(const std::vector<uint8_t>& p);
+    float fx, fy, fz; // force
+    float tx, ty, tz; // torque
 };

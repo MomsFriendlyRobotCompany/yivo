@@ -25,6 +25,9 @@ add_library(${PROJECT_NAME}
     src/seriallib.cpp
     src/imu.cpp
     src/pt.cpp
+    src/pose.cpp
+    src/twist.cpp
+    src/wrench.cpp
 )
 target_include_directories(${PROJECT_NAME}
     PUBLIC
