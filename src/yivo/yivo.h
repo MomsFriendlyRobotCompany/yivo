@@ -139,7 +139,7 @@ public:
 };
 
 /*
-Force and Torqu
+Force and Torque
 */
 class Wrench: public SerialLib {
 public:
