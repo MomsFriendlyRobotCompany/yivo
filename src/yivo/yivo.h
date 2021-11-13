@@ -95,6 +95,12 @@ public:
     uint16_t to_uint16(const std::vector<uint8_t>& p, int i);
     int16_t to_int16(const std::vector<uint8_t>& p, int i);
 };
+
+class Message: public SerialLib {
+public:
+}
+
+
 //
 // /*
 // 9DOF Inertial Measurement Unit sensor message
