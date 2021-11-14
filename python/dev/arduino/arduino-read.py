@@ -3,68 +3,81 @@
 import serial
 import yivo
 from pprint import pprint
+from slurm import storage, files
+import time
+
+# # put in
+# import pickle
+# import gzip
+#
+# class PickleZip:
+#     def __init__(self, filename, data):
+#         pass
+#
+#     def write(self, filename, data):
+#         filename = filename + ".pickle.gz"
+#         with gzip.open(filename, 'wb') as f:
+#             f.write(pickle.dumps(data, pickle.HIGHEST_PROTOCOL))
+#
+#     def open(self, filename):
+#         pass
 
 import time
 import struct
 from collections import namedtuple
+from collections import deque
 
 # [0xFF,0xFF] # start
-ACCEL = 0xFE # accel
-GYRO = 0xFD # gyro
-MAG = 0xFC # mag
-TEMP_PRES = 0xFB # temperature, pressure
+ACCEL      = 0xFE # accel
+GYRO       = 0xFD # gyro
+MAG        = 0xFC # mag
+TEMP_PRES  = 0xFB # temperature, pressure
 # 0xFA #
-# 0xF9 # light
-# 0xF8 # MLX90640 IR camera
-LIDAR = 0xF7 # lidar
+LIGHT      = 0xF9 # light
+IR_CAMERA  = 0xF8 # MLX90640 IR camera
+LIDAR      = 0xF7 # lidar
 # 0xF6-0xF3 # unused
-# 0xF2 # quaternion
-# 0xF1 # velocity
-# 0xF0 # position
+QUATERNION = 0xF2 # quaternion
+VELOCITY   = 0xF1 # velocity
+POSITION   = 0xF0 # position
 # [0xEE,0xEE] # end
 
 
 TempPres = namedtuple("TempPres", "temperature pressure")
-Vector2 = namedtuple("Vector3", "x y")
+Vector2 = namedtuple("Vector2", "x y")
 Vector3 = namedtuple("Vector3", "x y z")
 Lidar = namedtuple("Lidar","distance")
 
 def read_serial(ser):
-    # ff,ff,id,len
+    # ff,ff,msglen
     while ser.in_waiting < 3:
-        time.sleep(0.1)
+        time.sleep(0.0001)
         # print(".", ser.in_waiting)
         # print(".", ser.in_waiting, " -- ", ser.read(100))
 
     # print("got data")
 
     while True:
+        # get start header [0xff,0xff]
         chr = ser.read(1)
         if chr != b'\xff':
-            # print(chr)
-            time.sleep(0.002)
             continue
-        # print("one")
 
         chr = ser.read(1)
         if chr != b'\xff':
-            time.sleep(0.002)
             continue
-        # print("two")
 
         try:
             len = ser.read(1)
-            # print("len:", len)
             len = ord(len)
-            # print(len)
         except Exception:
-            time.sleep(0.002)
+            # time.sleep(0.002)
             continue
 
         break
 
     ans = {}
-    while len > 5:
+    while len > 5: # [0xff,0xff,len, ...,0xee,0xee]
         # print(f"{len} ----")
         # print(ans,"\n")
         id = ser.read(1)
@@ -93,24 +106,40 @@ def read_serial(ser):
             print("wtf:", id, len)
 
     # pprint(ans)
+    ans["timestamp"] = time.time()
     return ans
 
+def findSerialPort():
+    # handle macOS or Linux
+    sp = files.find("/dev","tty.usbmodem*")[0].as_posix()
+    print(sp)
+    return sp
 
 def main():
-    port = "/dev/tty.usbmodem14501"
-    s = serial.Serial(port,1000000, timeout=1)
+    port = findSerialPort()
+
+    s = serial.Serial(port, 1000000, timeout=0.001)
     if not s.is_open:
         print("*** serial fail ***")
         exit(1)
 
-    for _ in range(3):
+    times = deque()
+    last = time.time()
+    data = deque()
+    for _ in range(300):
         s.write(b"g\n")
-        s.flush()
         d = read_serial(s)
-        pprint(d)
-        print("\n ----")
+        data.append(d)
 
     s.close()
+
+    storage.write("data.pickle", data)
+
+    # dd = storage.read("data.pickle")
+    # print(dd)
+
+    # print(times)
+
 
 if __name__ == "__main__":
     main()

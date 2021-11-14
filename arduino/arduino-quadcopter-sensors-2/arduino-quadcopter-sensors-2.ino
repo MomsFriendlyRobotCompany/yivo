@@ -20,6 +20,7 @@
 #include <Adafruit_LIS3MDL.h>
 #include <Adafruit_Sensor.h> // SENSORS_PRESSURE_SEALEVELHPA, SENSORS_GRAVITY_STANDARD
 
+// sensors
 TFmini tfmini;
 Adafruit_LIS3MDL lis3mdl; // magnetometer
 //GCI_BMP3XX bmp;           // pressure
@@ -35,6 +36,8 @@ sensors_event_t a;
 sensors_event_t g;
 sensors_event_t tmp;
 sensors_event_t mag;
+
+// variables
 float ax, ay, az;
 float mx, my, mz;
 float wx, wy, wz;
@@ -62,40 +65,50 @@ bool irFound = false;
 bool pressFound = false;
 bool lidarFound = false;
 
-
-uint8_t messageLength = 56; // count [EE,EE] at end
-
 Packer packer(&Serial);
 
-// static float f[3];
-// static byte bf[13];
-//
-// void frame(byte id, float a){
-//     byte const* p = reinterpret_cast<byte const *>(f);
-//     f[0] = a;
-//     bf[0] = id;
-//     memcpy(&bf[1], p, 4);
-//     Serial.write(bf, 5);
-// }
-//
-// void frame(byte id, float a, float b){
-//     byte const* p = reinterpret_cast<byte const *>(f);
-//     f[0] = a;
-//     f[1] = b;
-//     bf[0] = id;
-//     memcpy(&bf[1], p, 8);
-//     Serial.write(bf, 9);
-// }
-//
-// void frame(const byte id, const float a, const float b, const float c){
-//     byte const* p = reinterpret_cast<byte const *>(f);
-//     f[0] = a;
-//     f[1] = b;
-//     f[2] = c;
-//     bf[0] = id;
-//     memcpy(&bf[1], p, 12);
-//     Serial.write(bf, 13);
-// }
+class gciLSM6DSOX {
+public:
+    gciLSM6DSOX(): found(false), invg(1.0/SENSORS_GRAVITY_STANDARD) {;}
+
+    void init(){
+        if (sox.begin_I2C()) {
+            found = true;
+    
+            // Accelerometer ------------------------------------------
+            sox.setAccelRange(LSM6DS_ACCEL_RANGE_4_G);
+            sox.setAccelDataRate(LSM6DS_RATE_208_HZ);
+    
+            // Gyros ----------------------------------------------------
+            sox.setGyroRange(LSM6DS_GYRO_RANGE_2000_DPS);
+            sox.setGyroDataRate(LSM6DS_RATE_208_HZ);
+        }
+    }
+
+    void read(){
+        if (found) {
+            sox.getEvent(&a,&g,&tmp);
+    
+            ax = a.acceleration.x * invg;
+            ay = a.acceleration.y * invg;
+            az = a.acceleration.z * invg;
+    
+            wx = g.gyro.x;
+            wy = g.gyro.y;
+            wz = g.gyro.z;
+        }
+    }
+    
+    bool found;
+    float ax,ay,az, wx,wy,wz;
+
+protected:
+    Adafruit_LSM6DSOX sox;
+    const float invg;
+    sensors_event_t a,g,tmp;
+};
+
+gciLSM6DSOX imu;
 
 void setup(void) {
     Serial.begin(1000000); // 1Mbps
@@ -110,27 +123,26 @@ void setup(void) {
 
     Wire.setClock(400000); // 400 kHz
 
-    if (sox.begin_I2C()) {
-        soxFound = true;
-        accelFound = true;
-        gyroFound = true;
-        messageLength += 24; // 6f * 4B = 24B
-        messageLength += 1; // header
-
-        // Accelerometer ------------------------------------------
-        sox.setAccelRange(LSM6DS_ACCEL_RANGE_4_G);
-        sox.setAccelDataRate(LSM6DS_RATE_208_HZ);
-
-        // Gyros ----------------------------------------------------
-        sox.setGyroRange(LSM6DS_GYRO_RANGE_2000_DPS);
-        sox.setGyroDataRate(LSM6DS_RATE_208_HZ);
-    }
+//    if (sox.begin_I2C()) {
+//        soxFound = true;
+//        accelFound = true;
+//        gyroFound = true;
+//
+//        // Accelerometer ------------------------------------------
+//        sox.setAccelRange(LSM6DS_ACCEL_RANGE_4_G);
+//        sox.setAccelDataRate(LSM6DS_RATE_208_HZ);
+//
+//        // Gyros ----------------------------------------------------
+//        sox.setGyroRange(LSM6DS_GYRO_RANGE_2000_DPS);
+//        sox.setGyroDataRate(LSM6DS_RATE_208_HZ);
+//    }
+    imu.init();
 
     // Magnetometer -----------------------------------------------------
       if (lis3mdl.begin_I2C()) {
           lisFound = true;
           magFound = true;
-          messageLength += 12; // 3f * 4B = 12 B
+//          messageLength += 12; // 3f * 4B = 12 B
 //          messageLength += 1; // header - this is captured with the accel/gyro
           // lis3mdl.setPerformanceMode(LIS3MDL_ULTRAHIGHMODE); // 155 already does this
           // lis3mdl.setPerformanceMode(LIS3MDL_HIGHMODE); // 300 already does this
@@ -191,9 +203,9 @@ void setup(void) {
 //    }
 
 //    // LIDAR
-//    if (tfmini.available()) {
-//        distance = tfmini.getDistance();
-//    }
+    if (tfmini.available()) {
+        distance = tfmini.getDistance();
+    }
 
     // IR -------------------------------------------------------------------
     // WARNING: this driver is buggy and has a beat that slows everything
@@ -272,17 +284,18 @@ void loop() {
 //        }
 //    }
 
-    if (soxFound) {
-        sox.getEvent(&a,&g,&tmp);
-
-        ax = a.acceleration.x * invg;
-        ay = a.acceleration.y * invg;
-        az = a.acceleration.z * invg;
-
-        wx = g.gyro.x;
-        wy = g.gyro.y;
-        wz = g.gyro.z;
-    }
+//    if (soxFound) {
+//        sox.getEvent(&a,&g,&tmp);
+//
+//        ax = a.acceleration.x * invg;
+//        ay = a.acceleration.y * invg;
+//        az = a.acceleration.z * invg;
+//
+//        wx = g.gyro.x;
+//        wy = g.gyro.y;
+//        wz = g.gyro.z;
+//    }
+    imu.read();
 
     if (lisFound){
         lis3mdl.getEvent(&mag);
@@ -317,6 +330,7 @@ void loop() {
     // LIDAR
     if (tfmini.available()) {
         distance = tfmini.getDistance();
+//        Serial.println(distance);
     }
 
     // Send data
@@ -325,9 +339,13 @@ void loop() {
 //        Serial.write(header, 2);
 //        Serial.write(messageLength);
 
-        packer.begin();
-        if (accelFound) packer.frame(0xFE, ax,ay,az);   // 3
-        if (gyroFound) packer.frame(0xFD, wx,wy,wz);    // 3
+//        packer.begin();
+//        if (accelFound) packer.frame(0xFE, ax,ay,az);   // 3
+//        if (gyroFound) packer.frame(0xFD, wx,wy,wz);    // 3
+
+        if (imu.found) packer.frame(0xFE, imu.ax,imu.ay,imu.az);   // 3
+        if (imu.found) packer.frame(0xFD, imu.wx,imu.wy,imu.wz);    // 3
+        
         if (magFound) packer.frame(0xFC, mx,my,mz);     // 3 
         if (pressFound) packer.frame(0xFB, temp, pres); // 2
 //        if (lightFound) packer.frame(0xF9, lux);        // 1
