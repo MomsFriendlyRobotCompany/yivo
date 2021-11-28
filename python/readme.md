@@ -2,6 +2,16 @@
 
 # Yivo
 
+Trying to standardize the way I access sensors.
+
+```python
+from yivo import SerialPort, findSerialPort
+
+port = findSerialPort()
+ser = SerialPort(port)
+
+data = ser.read()
+```
 
 # MIT License
 
