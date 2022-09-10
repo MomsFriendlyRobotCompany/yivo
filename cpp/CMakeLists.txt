@@ -22,12 +22,12 @@ message(STATUS "-------------------------------------")
 
 add_library(${PROJECT_NAME}
     src/packet.cpp
-    src/seriallib.cpp
-    src/imu.cpp
-    src/pt.cpp
-    src/pose.cpp
-    src/twist.cpp
-    src/wrench.cpp
+    # src/seriallib.cpp
+    # src/imu.cpp
+    # src/pt.cpp
+    # src/pose.cpp
+    # src/twist.cpp
+    # src/wrench.cpp
 )
 target_include_directories(${PROJECT_NAME}
     PUBLIC
@@ -38,7 +38,7 @@ target_include_directories(${PROJECT_NAME}
 add_subdirectory(examples)
 
 # Tests --------------------------------------------------------------
-option(TESTS "gecko google tests" ON)
-if(${TESTS})
-    add_subdirectory(gtests)
-endif()
+# option(TESTS "gecko google tests" ON)
+# if(${TESTS})
+#     add_subdirectory(gtests)
+# endif()

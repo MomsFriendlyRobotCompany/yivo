@@ -4,58 +4,55 @@
 #include <stdint.h>
 #include <strings.h> // memset
 #include <exception>
-#include <yivo/yivo.h>
+#include <yivo/yivo.hpp>
 
 
 using namespace std;
 
-/*
-[H,ID,LEN,..PARAMS..,CSUM]
+// std::ostream &operator<<(std::ostream &os, Packet const &p) {
+//     // for (uint8_t const& u: p.pkt) os << std::hex << int(u) << ",";
+//     for (uint8_t const& u: p.pkt) os << int(u) << ",";
+//     os << " ";
+//     return os;
+// }
 
-ID  Message Format
-a   angle        [H,a,ID,degrees]
-b   bulk read    [H,b,len,...]
-c   count        [H,c,ID,counts]
-s   sync cnt     [H,s,len,id,cnt,id,cnt,id,cnt, ....]
-S   sync cnt/spd [H,s,len,id,cnt,speed,id,cnt,speed,id,cnt,speed, ....]
-                 len: how many id's
-                 ex: [H,s,2,1,123,2,456] => 7B
-r   read         [H,r,id,register]
-t   torque       [H,t,id,value]
-*/
-
-
-std::ostream &operator<<(std::ostream &os, Packet const &p) {
-    // for (uint8_t const& u: p.pkt) os << std::hex << int(u) << ",";
-    for (uint8_t const& u: p.pkt) os << int(u) << ",";
-    os << " ";
-    return os;
-}
-
-void pprint(const Packet& p){
-    cout << "pprint: " << p  << endl;
-}
+struct Sensor {
+    union {
+        float f[10];
+        uint8_t b[10*sizeof(float)];
+    } data;
+};
 
 int main(){
-    IMU imu;
-    imu.accels(1.2,1.2,1.2);
-    imu.gyros(-1.2,-1.2,-1.2);
-    imu.mags(41.2,41.2,41.2);
-    imu.temp = 450.0;
-    cout << ">> gx: " << imu.gx << endl;
+    Yivo yivo;
+    Sensor sen;
+    sen.data.f[0] = 1.1;
+    sen.data.f[1] = 2.2;
+    sen.data.f[2] = 3.3;
 
-    Packet pkt = imu.serialize();
-    pprint(pkt);
+    int err = yivo.pack(IMU_AT, sen.data.b, 3*sizeof(float));
+    cout << err << endl;
 
-    IMU imu2;
-    imu2.deserialize(pkt.pkt);
-    cout << ">> gx: " << imu2.mz << endl;
+    uint8_t *buff = yivo.get_buffer();
+    uint16_t size = yivo.get_total_size();
 
-    PT pt;
-    pt.pressure = 100;
-    pt.temperature = -34;
-    pkt = pt.serialize();
-    pprint(pkt);
+    for (int i=0; i < size; ++i) {
+        cout << int(buff[i]) << ",";
+    }
+    cout << endl;
+
+    ImuA_t imu;
+    // memcpy(&imu, &yivo.get_buffer()[5], yivo.get_payload_size());
+    // cout << imu.ay << " " << imu.az << endl;
+
+    // msg_t m = yivo.read_packet();
+    int id = yivo.read_packet();
+    if (id == 1)
+        // imu = yivo.unpack<ImuA_t>(yivo.get_payload_buffer(), yivo.get_payload_size());
+        imu = yivo.unpack<ImuA_t>();
+    else if (false) {}
+
+    cout << imu.ay << " " << imu.az << endl;
 
     return 0;
 }

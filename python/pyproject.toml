@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yivo"
-version = "0.2.0"
+version = "0.3.0"
 description = "Arduino serial messaging"
 authors = ["walchko <walchko@users.noreply.github.com>"]
 readme = "readme.md"
@@ -24,8 +24,8 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-pyserial = "*"
-colorama = "*"
+# pyserial = "*"
+# colorama = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
