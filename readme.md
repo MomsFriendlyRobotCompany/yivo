@@ -1,22 +1,14 @@
-![](docs/yivo.png)
-
-![Cpp](https://github.com/MomsFriendlyRobotCompany/yivo/workflows/Cpp/badge.svg)
-![GitHub](https://img.shields.io/github/license/MomsFriendlyRobotCompany/yivo)
+![](https://raw.githubusercontent.com/MomsFriendlyRobotCompany/yivo/main/docs/yivo.png)
 
 # Yivo
 
-**Work in Progress**
+Trying to standardize the way I access sensors.
 
-## Why?
+```python
+from yivo import Yivo
 
-- Sending different serial messages from a uC at different sample rates is confusing
-    - Example: accelerometer@100Hz, gyros@200Hz, magnetometer@50Hz
-
-## ToDo
-
-- [ ] Write tests
-- [ ] Create python library
-
+yivo = Yivo()
+```
 
 # MIT License
 

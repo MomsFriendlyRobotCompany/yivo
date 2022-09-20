@@ -6,3 +6,6 @@ poetry.lock
 ._*
 *.pyc
 .ipynb_checkpoints
+.vscode
+__pycache__
+.pytest_cache
