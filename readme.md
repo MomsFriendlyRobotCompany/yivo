@@ -7,7 +7,12 @@ Trying to standardize the way I access sensors.
 ```python
 from yivo import Yivo
 
+some_data = range(9)
+
 yivo = Yivo()
+msg = rr.pack(MsgIDs.RAW_IMU, some_data) # create binary message
+# ... send over serial link and receive at other end ...
+err, msg_id, data = rr.unpack(msg) # unpack msg
 ```
 
 # MIT License
