@@ -11,6 +11,9 @@ from collections import deque
 from enum import IntEnum, unique
 import time
 
+from operator import xor
+from functools import reduce
+
 COMMAND = namedtuple("COMMAND", "id")
 
 REQUEST = namedtuple("REQUEST","msgid")
@@ -33,6 +36,8 @@ MagneticField = namedtuple("MagneticField","mx my mz")
 Range         = namedtuple("Range", "range")
 # LaserScan     = namedtuple("LaserScan", "ranges intensities")
 TemperaturePressure = namedtuple("TemperaturePressure", "temperature pressure")
+
+LidarRanger = namedtuple("LidarRanger", "distance strength intTime")
 
 YivoError = namedtuple("YivoError","error")
 YivoOK = namedtuple("YivoOK", "val")
@@ -81,6 +86,8 @@ class MsgIDs(IntEnum):
     # BOXIDS     = 119
     # SERVO_CONF = 120
 
+    LIDAR_RANGER = 22
+
 
     IMU_AGMQPT= 139
     IMU_AGMQT = 140
@@ -105,7 +112,7 @@ class MsgIDs(IntEnum):
     # SET_WP           = 209
     # SWITCH_RC_SERIAL = 210
     # SET_HEADING      = 211
-    # SET_POSE          = 211  # pos (x,y,altitude), attitude(roll,pitch,yaw)
+    # SET_POSE         = 211  # pos (x,y,altitude), attitude(roll,pitch,yaw)
     # SET_SERVO_CONF   = 212
 
     YIVO_ERROR = 250
@@ -116,10 +123,13 @@ def checksum(size,msgid,msg):
     if size == 0 and msg == None:
         return msgid
 
-    a,b = struct.pack('H', size)
-    # cs = size ^ msgid
-    cs = a ^ b
-    cs ^= msgid
+    # a,b = struct.pack('H', size)
+    a = 0x00FF & size
+    b = size >> 8
+
+    cs = (a ^ b)^msgid
+    # msg = [cs] + msg
+    # cs = reduce(xor, msg)
     for m in msg:
         cs ^= m
     # print("cs", cs, cs.to_bytes(1,'little'))
@@ -145,8 +155,23 @@ def chunk(msg):
 def num_fields(sensor):
     return len(sensor._fields)
 
-class Yivo:
+def make_Struct(payload):
+    """
+    [ 0, 1, 2, 3,4,    5:-2, -1]
+    [h0,h1,LN,HN,T, payload, CS]
+    Header: h0, h1
+    N: payload length
+       N = (HN << 8) + LN, max data bytes is 65,536 Bytes
+         HN: High Byte
+         LN: Low Byte
+    T: packet type or MsgID
+    """
+    return Struct(f"<2cHB{payload}B")
 
+ldr = make_Struct("2HB")
+aa = make_Struct("16fL")
+
+class Yivo:
     # [ 0, 1, 2, 3,4, ..., -1]
     # [h0,h1,LN,HN,T, ..., CS]
     # Header: h0, h1
@@ -161,7 +186,7 @@ class Yivo:
         # MsgIDs.PING: (Struct("<2chBB"), COMMAND,),
         # MsgIDs.REBOOT: (Struct("<2chBB"), COMMAND,),
         # MsgIDs.PING: (Struct("<2chBB"), COMMAND,),
-        MsgIDs.IMU_AGMQPT: (Struct("<2chB16fLB"), ImuAGMQPT,),
+        MsgIDs.IMU_AGMQPT: (make_Struct("16fL"), ImuAGMQPT,),
         MsgIDs.IMU_AGMQT:  (Struct("<2chB14fLB"), ImuAGMQT,),
         MsgIDs.IMU_AGMT:   (Struct("<2chB10fLB"), ImuAGMT,),
         MsgIDs.IMU_AGT:    (Struct("<2chB7fLB"),  ImuAGT,),
@@ -173,6 +198,7 @@ class Yivo:
         MsgIDs.GYR_CALIBRATION: (Struct("<2chB6fB"),   CALIBRATION,),
         MsgIDs.MOTORS: (Struct("<2chB5hB"), Motors4),
         MsgIDs.YIVO_ERROR: (Struct("<2chBBB"),   YivoError,),
+        MsgIDs.LIDAR_RANGER: (make_Struct("2HB"), LidarRanger,),
     }
     pack_cs = Struct("<B")
 
@@ -220,20 +246,20 @@ class Yivo:
         a = ord(self.header[0])
         b = ord(self.header[1])
         if (msg[0] != a) or (msg[1] != b):
-            print(msg[:2], self.header)
+            # print(msg[:2], self.header)
             return Errors.INVALID_HEADER, None, None
 
         if msgid not in valid_msgids:
-            print(f"invalid id: {msgid}")
+            # print(f"invalid id: {msgid}")
             return Errors.INVALID_MSGID, None, None
 
         if (size != 0) and (size != len(payload)):
-            print(len(payload),"!=", size)
+            # print(len(payload),"!=", size)
             return Errors.INVALID_LENGTH, None, None
         # print(size, len(payload))
 
         if checksum(size, msgid, payload) != cs:
-            print("checksum failure", cs, "!=", checksum(size, msgid, payload))
+            # print("checksum failure", cs, "!=", checksum(size, msgid, payload))
             return Errors.INVALID_CHECKSUM, None, None
         # print(cs, checksum(size, msgid, payload))
 
@@ -248,51 +274,52 @@ class Yivo:
             val = obj(*info[4:-1])
         else:
             val = REQUEST(msgid)
+        # val = None
 
         return Errors.NONE, msgid, val
 
-    def read_packet(self, ser, retry=64):
-        """
-        ser: serial object
-        retry: how many times to retry reading the serial port to find the header
+    # def read_packet(self, ser, retry=64):
+    #     """
+    #     ser: serial object
+    #     retry: how many times to retry reading the serial port to find the header
 
-        Return: namedtuple message or None
-        """
-        # while ser.in_waiting < 5:
-        #     time.sleep(0.0001)
+    #     Return: namedtuple message or None
+    #     """
+    #     # while ser.in_waiting < 5:
+    #     #     time.sleep(0.0001)
 
-        # make a FIFO of size 2 to hold the header
-        rbuf = deque(maxlen=2)
-        rbuf.append(ser.read(1))
-        header = deque(self.header)
+    #     # make a FIFO of size 2 to hold the header
+    #     rbuf = deque(maxlen=2)
+    #     rbuf.append(ser.read(1))
+    #     header = deque(self.header)
 
-        # while True:
-        while retry:
-            retry -= 1
-            # get header
-            rbuf.append(ser.read(1))
-            if rbuf != header:
-                # print(rbuf)
-                continue
-            break
+    #     # while True:
+    #     while retry:
+    #         retry -= 1
+    #         # get header
+    #         rbuf.append(ser.read(1))
+    #         if rbuf != header:
+    #             # print(rbuf)
+    #             continue
+    #         break
 
-        # didn't find header
-        # if retry == 0:
-        #     print("** No msg")
-        #     return None
+    #     # didn't find header
+    #     # if retry == 0:
+    #     #     print("** No msg")
+    #     #     return None
 
-        sz = ser.read(2)
-        size = (sz[1] << 8) + sz[0]
-        msgid = ord(ser.read(1))
-        payload = ser.read(size)
-        cs = ord(ser.read(1))
-        # print(rbuf, sz, msgid.to_bytes(1, 'little'), payload, cs.to_bytes(1, 'little'))
-        msg = b''.join([rbuf[0],rbuf[1], sz, msgid.to_bytes(1, 'little'), payload, cs.to_bytes(1, 'little')])
-        # return list(rbuf)+sz+[msgid]+payload+[cs]
+    #     sz = ser.read(2)
+    #     size = (sz[1] << 8) + sz[0]
+    #     msgid = ord(ser.read(1))
+    #     payload = ser.read(size)
+    #     cs = ord(ser.read(1))
+    #     # print(rbuf, sz, msgid.to_bytes(1, 'little'), payload, cs.to_bytes(1, 'little'))
+    #     msg = b''.join([rbuf[0],rbuf[1], sz, msgid.to_bytes(1, 'little'), payload, cs.to_bytes(1, 'little')])
+    #     # return list(rbuf)+sz+[msgid]+payload+[cs]
 
-        try:
-            fmt, obj = self.msgInfo[msgid]
-        except KeyError:
-            return None
-        data = fmt.unpack(msg)[4:-1]
-        return obj(*data)
+    #     try:
+    #         fmt, obj = self.msgInfo[msgid]
+    #     except KeyError:
+    #         return None
+    #     data = fmt.unpack(msg)[4:-1]
+    #     return obj(*data)
