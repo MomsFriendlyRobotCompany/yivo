@@ -4,6 +4,17 @@
 
 Trying to standardize the way I access sensors.
 
+```
+[ 0, 1, 2, 3,4, ..., -1]
+[h0,h1,LN,HN,T, ..., CS]
+Header: h0, h1
+N = (HN << 8) + LN, max data bytes is 65,536 Bytes
+  HN: High Byte
+  LN: Low Byte
+T: packet type or MsgID
+CS: checksum
+```
+
 ```python
 from yivo import Yivo
 
