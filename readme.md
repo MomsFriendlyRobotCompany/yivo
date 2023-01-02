@@ -28,6 +28,7 @@ msg = yivo.pack(MsgIDs.RAW_IMU, some_data) # create binary message
 err, msg_id, data = yivo.unpack(msg) # unpack msg
 ```
 
+
 # MIT License
 
 **Copyright (c) 2020 Mom's Friendly Robot Company**
