@@ -6,7 +6,6 @@
 from collections import namedtuple
 from struct import Struct
 import struct
-from collections import namedtuple
 from collections import deque
 from enum import IntEnum, unique
 import time
@@ -153,6 +152,7 @@ def chunk(msg):
     return size, msgid, payload, cs
 
 def num_fields(sensor):
+    """Returns the number of fields in a message"""
     return len(sensor._fields)
 
 def make_Struct(payload):
@@ -167,9 +167,6 @@ def make_Struct(payload):
     T: packet type or MsgID
     """
     return Struct(f"<2cHB{payload}B")
-
-ldr = make_Struct("2HB")
-aa = make_Struct("16fL")
 
 class Yivo:
     # [ 0, 1, 2, 3,4, ..., -1]
@@ -186,19 +183,19 @@ class Yivo:
         # MsgIDs.PING: (Struct("<2chBB"), COMMAND,),
         # MsgIDs.REBOOT: (Struct("<2chBB"), COMMAND,),
         # MsgIDs.PING: (Struct("<2chBB"), COMMAND,),
-        MsgIDs.IMU_AGMQPT: (make_Struct("16fL"), ImuAGMQPT,),
-        MsgIDs.IMU_AGMQT:  (Struct("<2chB14fLB"), ImuAGMQT,),
-        MsgIDs.IMU_AGMT:   (Struct("<2chB10fLB"), ImuAGMT,),
-        MsgIDs.IMU_AGT:    (Struct("<2chB7fLB"),  ImuAGT,),
-        MsgIDs.IMU_AT:     (Struct("<2chB4fLB"),  ImuAT,),
-        MsgIDs.MAGNETIC:   (Struct("<2chB3fB"),   MagneticField,),
-        MsgIDs.TEMP_PRES:  (Struct("<2chB2fB"),   TemperaturePressure,),
-        MsgIDs.ACC_CALIBRATION: (Struct("<2chB6fB"),   CALIBRATION,),
-        MsgIDs.MAG_CALIBRATION: (Struct("<2chB6fB"),   CALIBRATION,),
-        MsgIDs.GYR_CALIBRATION: (Struct("<2chB6fB"),   CALIBRATION,),
-        MsgIDs.MOTORS: (Struct("<2chB5hB"), Motors4),
-        MsgIDs.YIVO_ERROR: (Struct("<2chBBB"),   YivoError,),
-        MsgIDs.LIDAR_RANGER: (make_Struct("2HB"), LidarRanger,),
+        MsgIDs.IMU_AGMQPT:      (make_Struct("16fL"), ImuAGMQPT,),
+        MsgIDs.IMU_AGMQT:       (make_Struct("14fL"), ImuAGMQT,),
+        MsgIDs.IMU_AGMT:        (make_Struct("10fL"), ImuAGMT,),
+        MsgIDs.IMU_AGT:         (make_Struct("7fL"),  ImuAGT,),
+        MsgIDs.IMU_AT:          (make_Struct("4fL"),  ImuAT,),
+        MsgIDs.MAGNETIC:        (make_Struct("3f"),   MagneticField,),
+        MsgIDs.TEMP_PRES:       (make_Struct("2f"),   TemperaturePressure,),
+        MsgIDs.ACC_CALIBRATION: (make_Struct("6f"),   CALIBRATION,),
+        MsgIDs.MAG_CALIBRATION: (make_Struct("6f"),   CALIBRATION,),
+        MsgIDs.GYR_CALIBRATION: (make_Struct("6f"),   CALIBRATION,),
+        MsgIDs.MOTORS:          (make_Struct("5h"),   Motors4),
+        MsgIDs.YIVO_ERROR:      (make_Struct("B"),    YivoError,),
+        MsgIDs.LIDAR_RANGER:    (make_Struct("2HB"),  LidarRanger,),
     }
     pack_cs = Struct("<B")
 
