@@ -4,16 +4,30 @@
 
 Trying to standardize the way I access sensors.
 
+Message format:
+
+```
+[ 0, 1, 2, 3,4, ..., -1]
+[h0,h1,LN,HN,T, ..., CS]
+Header: h0, h1
+N = (HN << 8) + LN, max data bytes is 65,536 Bytes
+  HN: High Byte
+  LN: Low Byte
+T: packet type or MsgID
+CS: simple checksum
+```
+
 ```python
 from yivo import Yivo
 
 some_data = range(9)
 
 yivo = Yivo()
-msg = rr.pack(MsgIDs.RAW_IMU, some_data) # create binary message
+msg = yivo.pack(MsgIDs.RAW_IMU, some_data) # create binary message
 # ... send over serial link and receive at other end ...
-err, msg_id, data = rr.unpack(msg) # unpack msg
+err, msg_id, data = yivo.unpack(msg) # unpack msg
 ```
+
 
 # MIT License
 
