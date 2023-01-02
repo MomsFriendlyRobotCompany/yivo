@@ -4,6 +4,8 @@
 
 Trying to standardize the way I access sensors.
 
+Message format:
+
 ```
 [ 0, 1, 2, 3,4, ..., -1]
 [h0,h1,LN,HN,T, ..., CS]
