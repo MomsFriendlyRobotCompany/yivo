@@ -23,9 +23,9 @@ from yivo import Yivo
 some_data = range(9)
 
 yivo = Yivo()
-msg = rr.pack(MsgIDs.RAW_IMU, some_data) # create binary message
+msg = yivo.pack(MsgIDs.RAW_IMU, some_data) # create binary message
 # ... send over serial link and receive at other end ...
-err, msg_id, data = rr.unpack(msg) # unpack msg
+err, msg_id, data = yivo.unpack(msg) # unpack msg
 ```
 
 # MIT License
