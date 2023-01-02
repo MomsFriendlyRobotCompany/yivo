@@ -14,7 +14,7 @@ N = (HN << 8) + LN, max data bytes is 65,536 Bytes
   HN: High Byte
   LN: Low Byte
 T: packet type or MsgID
-CS: checksum
+CS: simple checksum
 ```
 
 ```python
