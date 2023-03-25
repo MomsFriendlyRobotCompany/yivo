@@ -28,6 +28,7 @@ python = ">=3.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
+numpy = "*"
 
 [build-system]
 requires = ["poetry>=1.0.0"]
