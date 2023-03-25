@@ -16,26 +16,17 @@ class YivoParser:
     def __init__(self, header):
         self.readState = ReadState_t.NONE_STATE
         self.buff = []
-        # self.yivo = y
         self.header = header
         self.buffer_msgid = -1
-
-        # print("init: ", self.header)
 
     def get_info(self):
         return b''.join(self.buff), self.buffer_msgid
 
     def checksum(self,size,msgid,msg):
-        # if size == 0 and msg == None:
-        #     return msgid
-
-        # a,b = struct.pack('H', size)
         a = 0x00FF & size
         b = size >> 8
 
         cs = (a ^ b)^msgid
-        # msg = [cs] + msg
-        # cs = reduce(xor, msg)
         for m in msg:
             cs ^= ord(m)
         # printp("cs", cs, cs.to_bytes(1,'little'))
@@ -45,7 +36,6 @@ class YivoParser:
         ret = False
         # print(c)
         # print(">>", c, type(c), type(self.header[0]), c == self.header[0])
-        # c = ord(c)
         if self.readState == ReadState_t.NONE_STATE:
             if c == self.header[0]:
                 self.buff = []

@@ -3,43 +3,10 @@
 # Copyright (c) 2020 Kevin Walchko
 # see LICENSE for full details
 ##############################################
-# from collections import namedtuple
 from struct import Struct
-# import struct
-# from collections import deque
-from enum import IntEnum, unique
-# import time
+from enum import IntEnum, unique # need for Errors
 from .parser import YivoParser
-from operator import xor
-from functools import reduce
 
-# COMMAND = namedtuple("COMMAND", "id")
-
-# REQUEST = namedtuple("REQUEST","msgid")
-# IDENT = namedtuple("IDENT", "version multitype msp_version capability")
-# IMU_RAW = namedtuple("IMU_RAW", "ax ay az gx gy gz mx my mz")
-# ATTITUDE = namedtuple("ATTITUDE", "roll pitch heading")
-# ALTITUDE = namedtuple("ALTITUDE", "alt vario")
-
-# CALIBRATION = namedtuple("CALIBRATION", "bx by bz sx sy sz") # bias, scale
-# PID = namedtuple("PID", "kp ki kd")
-
-# Motors4 = namedtuple("Motors4","m0 m1 m2 m3 armed")
-
-# ImuAGMQPT     = namedtuple("ImuAGMQPT", "ax ay az wx wy wz imu_temp mx my mz qw qx qy qz pressure temperature ts")
-# ImuAGMQT      = namedtuple("ImuAGMQT", "ax ay az wx wy wz mx my mz qw qx qy qz temperature ts")
-# ImuAGMT       = namedtuple("ImuAGMT",  "ax ay az wx wy wz mx my mz temperature ts")
-# ImuAGT        = namedtuple("ImuAGT",   "ax ay az wx wy wz temperature ts")
-# ImuAT         = namedtuple("ImuAT",    "ax ay az temperature ts")
-# MagneticField = namedtuple("MagneticField","mx my mz")
-# Range         = namedtuple("Range", "range")
-# # LaserScan     = namedtuple("LaserScan", "ranges intensities")
-# TemperaturePressure = namedtuple("TemperaturePressure", "temperature pressure")
-
-# LidarRanger = namedtuple("LidarRanger", "distance strength intTime")
-
-# YivoError = namedtuple("YivoError","error")
-# YivoOK = namedtuple("YivoOK", "val")
 
 
 @unique
@@ -52,71 +19,6 @@ class Errors(IntEnum):
     INVALID_MSGID    = 16
 
 
-# @unique
-# class MsgIDs(IntEnum):
-#     """MSP message ID"""
-#     # Commands
-#     PING = 10
-#     # CALIBRATION_DATA     = 14  # bias, scale
-#     # SET_CALIBRATION_DATA = 15  # bias, scale
-#     REBOOT = 68
-
-#     # 100's are from the Flight Controller ===========
-#     # IDENT    = 100
-#     # STATUS   = 101
-#     # RAW_IMU  = 102  # 9DOF
-#     # SERVO    = 103
-#     # MOTOR    = 104
-#     # RC       = 105
-#     # RAW_GPS  = 106
-#     # COMP_GPS = 107
-#     # ATTITUDE = 108
-#     # ALTITUDE   = 109
-#     # ANALOG     = 110
-#     # RC_TUNING  = 111
-#     # PID        = 112
-#     # POSE       = 113
-#     # BOX        = 113
-#     # MISC       = 114
-#     # MOTOR_PINS = 115
-#     # BOXNAMES   = 116
-#     # PIDNAMES   = 117
-#     # WP         = 118
-#     # BOXIDS     = 119
-#     # SERVO_CONF = 120
-
-#     LIDAR_RANGER = 22
-
-
-#     IMU_AGMQPT= 139
-#     IMU_AGMQT = 140
-#     IMU_AGMT  = 141
-#     IMU_AGT   = 142
-#     IMU_AT    = 143
-#     MAGNETIC  = 144
-#     RANGE     = 145
-#     GPS       = 146
-#     TEMP_PRES = 147
-#     VOLTAGE   = 148
-
-
-#     MOTORS       = 200
-#     SET_MOTORS      = 201
-#     ACC_CALIBRATION  = 202  # bias, scale ??
-#     MAG_CALIBRATION  = 203  # bias, scale ??
-#     GYR_CALIBRATION  = 204  # bias, scale ??
-#     SET_TEL_STREAM   = 205
-#     # SET_MISC         = 207
-#     # RESET_CONF       = 208
-#     # SET_WP           = 209
-#     # SWITCH_RC_SERIAL = 210
-#     # SET_HEADING      = 211
-#     # SET_POSE         = 211  # pos (x,y,altitude), attitude(roll,pitch,yaw)
-#     # SET_SERVO_CONF   = 212
-
-#     YIVO_ERROR = 250
-
-# valid_msgids = [int(x) for x in MsgIDs]
 
 def checksum(size,msgid,msg):
     if size == 0 and msg == None:
@@ -135,11 +37,6 @@ def checksum(size,msgid,msg):
     return cs
 
 def chunk(msg):
-    # size = msg[3]
-    # msgid = msg[4]
-    # payload = msg[5:-1]
-    # cs = msg[-1]
-    # return size, msgid, payload, cs
     size = msg[2] + (msg[3] << 8) # messages sent little endian
     msgid = msg[4]
 
@@ -165,6 +62,8 @@ def make_Struct(payload):
          HN: High Byte
          LN: Low Byte
     T: packet type or MsgID
+
+    Only insert the payload format and this returns: Struct(f"<2cHB{payload}B")
     """
     return Struct(f"<2cHB{payload}B")
 
@@ -201,10 +100,6 @@ class Yivo:
         else:
             fmt, _ = self.msgInfo[msgID]
             sz = fmt.size - 6
-            # print(f">> {fmt.size - 6} == {sz}")
-            # cs = checksum(sz,msgID,data) # can't do this, cs will be diff!!
-            # direction = b'>' if msgID < 200 else b'<'
-            # msg = fmt.pack(b'$',b'M', sz, msgID, *data, 0)
             msg = fmt.pack(*self.header, sz, msgID, *data, 0)
             cs = checksum(sz,msgID,msg[5:-1])
             msg = msg[:-1] + self.pack_cs.pack(cs) #cs.to_bytes(1,'little')
@@ -219,11 +114,7 @@ class Yivo:
             Message
         """
         size, msgid, payload, cs = chunk(msg)
-        # print("size",size)
 
-        # print(msg[0],self.header[0],msg[1], self.header[1])
-        # if (msg[:2] != b"$M"):
-        # if (msg[:2] != self.header):
         a = ord(self.header[0])
         b = ord(self.header[1])
         if (msg[0] != a) or (msg[1] != b):

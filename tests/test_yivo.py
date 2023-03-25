@@ -4,12 +4,14 @@ import pytest
 from numpy import pi, allclose
 
 def test_pack_n_unpack():
+
+    # make some messages we want to send/receive
     A = namedtuple("A","x y")
     B = namedtuple("B", "x y z t")
 
     msgdb = {
-        1: (make_Struct("2f"), A),
-        2: (make_Struct("4f"), B)
+        1: (make_Struct("2f"), A), # 2 floats
+        2: (make_Struct("4f"), B)  # 4 floats
     }
 
     yivo = Yivo(msgdb)
@@ -33,6 +35,4 @@ def test_pack_n_unpack():
             # print(i, ok, c, ord(c))
 
         assert ok, print("final: ", ok, msgid, msg)
-
-        # ans = msgdb[msgid]
         assert allclose(tuple(msg), tuple([float(x) for x in [pi]*testsz]))

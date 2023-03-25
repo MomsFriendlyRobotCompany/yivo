@@ -3,8 +3,6 @@
 # Copyright (c) 2020 Kevin Walchko
 # see LICENSE for full details
 ##############################################
-
-
 from importlib.metadata import version
 
 from .packet import Yivo

@@ -22,7 +22,7 @@ from yivo import Yivo
 from yivo import make_Struct
 from collections import namedtuple
 
-some_data = range(9)
+some_data = (1.1,2.2)
 
 # create classes or namedtuples to hold data
 A = namedtuple("A","x")
@@ -35,11 +35,21 @@ msgdb = {
 }
 
 yivo = Yivo(msgdb)
-msg = yivo.pack(MsgIDs.RAW_IMU, some_data) # create binary message
+msg = yivo.pack(2, some_data) # create binary message
 # ... send over serial link and receive at other end ...
 err, msg_id, data = yivo.unpack(msg) # unpack msg
 ```
 
+Now another way is read a serial port on character at time, so it looks like this:
+
+```python
+ok = False
+while (not ok):
+    c = serial_port.read(1)
+    ok, msgid, msg = yivo.parse(c) # msgid and msg are None if ok is False
+
+print(msg)
+```
 
 # MIT License
 
