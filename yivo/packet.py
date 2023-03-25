@@ -3,43 +3,43 @@
 # Copyright (c) 2020 Kevin Walchko
 # see LICENSE for full details
 ##############################################
-from collections import namedtuple
+# from collections import namedtuple
 from struct import Struct
-import struct
-from collections import deque
+# import struct
+# from collections import deque
 from enum import IntEnum, unique
-import time
-
+# import time
+from .parser import YivoParser
 from operator import xor
 from functools import reduce
 
-COMMAND = namedtuple("COMMAND", "id")
+# COMMAND = namedtuple("COMMAND", "id")
 
-REQUEST = namedtuple("REQUEST","msgid")
-IDENT = namedtuple("IDENT", "version multitype msp_version capability")
-IMU_RAW = namedtuple("IMU_RAW", "ax ay az gx gy gz mx my mz")
-ATTITUDE = namedtuple("ATTITUDE", "roll pitch heading")
-ALTITUDE = namedtuple("ALTITUDE", "alt vario")
+# REQUEST = namedtuple("REQUEST","msgid")
+# IDENT = namedtuple("IDENT", "version multitype msp_version capability")
+# IMU_RAW = namedtuple("IMU_RAW", "ax ay az gx gy gz mx my mz")
+# ATTITUDE = namedtuple("ATTITUDE", "roll pitch heading")
+# ALTITUDE = namedtuple("ALTITUDE", "alt vario")
 
-CALIBRATION = namedtuple("CALIBRATION", "bx by bz sx sy sz") # bias, scale
-PID = namedtuple("PID", "kp ki kd")
+# CALIBRATION = namedtuple("CALIBRATION", "bx by bz sx sy sz") # bias, scale
+# PID = namedtuple("PID", "kp ki kd")
 
-Motors4 = namedtuple("Motors4","m0 m1 m2 m3 armed")
+# Motors4 = namedtuple("Motors4","m0 m1 m2 m3 armed")
 
-ImuAGMQPT     = namedtuple("ImuAGMQPT", "ax ay az wx wy wz imu_temp mx my mz qw qx qy qz pressure temperature ts")
-ImuAGMQT      = namedtuple("ImuAGMQT", "ax ay az wx wy wz mx my mz qw qx qy qz temperature ts")
-ImuAGMT       = namedtuple("ImuAGMT",  "ax ay az wx wy wz mx my mz temperature ts")
-ImuAGT        = namedtuple("ImuAGT",   "ax ay az wx wy wz temperature ts")
-ImuAT         = namedtuple("ImuAT",    "ax ay az temperature ts")
-MagneticField = namedtuple("MagneticField","mx my mz")
-Range         = namedtuple("Range", "range")
-# LaserScan     = namedtuple("LaserScan", "ranges intensities")
-TemperaturePressure = namedtuple("TemperaturePressure", "temperature pressure")
+# ImuAGMQPT     = namedtuple("ImuAGMQPT", "ax ay az wx wy wz imu_temp mx my mz qw qx qy qz pressure temperature ts")
+# ImuAGMQT      = namedtuple("ImuAGMQT", "ax ay az wx wy wz mx my mz qw qx qy qz temperature ts")
+# ImuAGMT       = namedtuple("ImuAGMT",  "ax ay az wx wy wz mx my mz temperature ts")
+# ImuAGT        = namedtuple("ImuAGT",   "ax ay az wx wy wz temperature ts")
+# ImuAT         = namedtuple("ImuAT",    "ax ay az temperature ts")
+# MagneticField = namedtuple("MagneticField","mx my mz")
+# Range         = namedtuple("Range", "range")
+# # LaserScan     = namedtuple("LaserScan", "ranges intensities")
+# TemperaturePressure = namedtuple("TemperaturePressure", "temperature pressure")
 
-LidarRanger = namedtuple("LidarRanger", "distance strength intTime")
+# LidarRanger = namedtuple("LidarRanger", "distance strength intTime")
 
-YivoError = namedtuple("YivoError","error")
-YivoOK = namedtuple("YivoOK", "val")
+# YivoError = namedtuple("YivoError","error")
+# YivoOK = namedtuple("YivoOK", "val")
 
 
 @unique
@@ -52,71 +52,71 @@ class Errors(IntEnum):
     INVALID_MSGID    = 16
 
 
-@unique
-class MsgIDs(IntEnum):
-    """MSP message ID"""
-    # Commands
-    PING = 10
-    # CALIBRATION_DATA     = 14  # bias, scale
-    # SET_CALIBRATION_DATA = 15  # bias, scale
-    REBOOT = 68
+# @unique
+# class MsgIDs(IntEnum):
+#     """MSP message ID"""
+#     # Commands
+#     PING = 10
+#     # CALIBRATION_DATA     = 14  # bias, scale
+#     # SET_CALIBRATION_DATA = 15  # bias, scale
+#     REBOOT = 68
 
-    # 100's are from the Flight Controller ===========
-    # IDENT    = 100
-    # STATUS   = 101
-    # RAW_IMU  = 102  # 9DOF
-    # SERVO    = 103
-    # MOTOR    = 104
-    # RC       = 105
-    # RAW_GPS  = 106
-    # COMP_GPS = 107
-    # ATTITUDE = 108
-    # ALTITUDE   = 109
-    # ANALOG     = 110
-    # RC_TUNING  = 111
-    # PID        = 112
-    # POSE       = 113
-    # BOX        = 113
-    # MISC       = 114
-    # MOTOR_PINS = 115
-    # BOXNAMES   = 116
-    # PIDNAMES   = 117
-    # WP         = 118
-    # BOXIDS     = 119
-    # SERVO_CONF = 120
+#     # 100's are from the Flight Controller ===========
+#     # IDENT    = 100
+#     # STATUS   = 101
+#     # RAW_IMU  = 102  # 9DOF
+#     # SERVO    = 103
+#     # MOTOR    = 104
+#     # RC       = 105
+#     # RAW_GPS  = 106
+#     # COMP_GPS = 107
+#     # ATTITUDE = 108
+#     # ALTITUDE   = 109
+#     # ANALOG     = 110
+#     # RC_TUNING  = 111
+#     # PID        = 112
+#     # POSE       = 113
+#     # BOX        = 113
+#     # MISC       = 114
+#     # MOTOR_PINS = 115
+#     # BOXNAMES   = 116
+#     # PIDNAMES   = 117
+#     # WP         = 118
+#     # BOXIDS     = 119
+#     # SERVO_CONF = 120
 
-    LIDAR_RANGER = 22
-
-
-    IMU_AGMQPT= 139
-    IMU_AGMQT = 140
-    IMU_AGMT  = 141
-    IMU_AGT   = 142
-    IMU_AT    = 143
-    MAGNETIC  = 144
-    RANGE     = 145
-    GPS       = 146
-    TEMP_PRES = 147
-    VOLTAGE   = 148
+#     LIDAR_RANGER = 22
 
 
-    MOTORS       = 200
-    SET_MOTORS      = 201
-    ACC_CALIBRATION  = 202  # bias, scale ??
-    MAG_CALIBRATION  = 203  # bias, scale ??
-    GYR_CALIBRATION  = 204  # bias, scale ??
-    SET_TEL_STREAM   = 205
-    # SET_MISC         = 207
-    # RESET_CONF       = 208
-    # SET_WP           = 209
-    # SWITCH_RC_SERIAL = 210
-    # SET_HEADING      = 211
-    # SET_POSE         = 211  # pos (x,y,altitude), attitude(roll,pitch,yaw)
-    # SET_SERVO_CONF   = 212
+#     IMU_AGMQPT= 139
+#     IMU_AGMQT = 140
+#     IMU_AGMT  = 141
+#     IMU_AGT   = 142
+#     IMU_AT    = 143
+#     MAGNETIC  = 144
+#     RANGE     = 145
+#     GPS       = 146
+#     TEMP_PRES = 147
+#     VOLTAGE   = 148
 
-    YIVO_ERROR = 250
 
-valid_msgids = [int(x) for x in MsgIDs]
+#     MOTORS       = 200
+#     SET_MOTORS      = 201
+#     ACC_CALIBRATION  = 202  # bias, scale ??
+#     MAG_CALIBRATION  = 203  # bias, scale ??
+#     GYR_CALIBRATION  = 204  # bias, scale ??
+#     SET_TEL_STREAM   = 205
+#     # SET_MISC         = 207
+#     # RESET_CONF       = 208
+#     # SET_WP           = 209
+#     # SWITCH_RC_SERIAL = 210
+#     # SET_HEADING      = 211
+#     # SET_POSE         = 211  # pos (x,y,altitude), attitude(roll,pitch,yaw)
+#     # SET_SERVO_CONF   = 212
+
+#     YIVO_ERROR = 250
+
+# valid_msgids = [int(x) for x in MsgIDs]
 
 def checksum(size,msgid,msg):
     if size == 0 and msg == None:
@@ -176,30 +176,9 @@ class Yivo:
     #   HN: High Byte
     #   LN: Low Byte
     # T: packet type or MsgID
-    msgInfo = {
-        # MsgIDs.REQUEST:   (Struct("<2chBB"), REQUEST),
-        # MsgIDs.IDENT:     (Struct("<2chBBBBIB"), IDENT,),
-        # MsgIDs.RAW_IMU:   (Struct("<2chB9hB"),   IMU_RAW,),
-        # MsgIDs.PING: (Struct("<2chBB"), COMMAND,),
-        # MsgIDs.REBOOT: (Struct("<2chBB"), COMMAND,),
-        # MsgIDs.PING: (Struct("<2chBB"), COMMAND,),
-        MsgIDs.IMU_AGMQPT:      (make_Struct("16fL"), ImuAGMQPT,),
-        MsgIDs.IMU_AGMQT:       (make_Struct("14fL"), ImuAGMQT,),
-        MsgIDs.IMU_AGMT:        (make_Struct("10fL"), ImuAGMT,),
-        MsgIDs.IMU_AGT:         (make_Struct("7fL"),  ImuAGT,),
-        MsgIDs.IMU_AT:          (make_Struct("4fL"),  ImuAT,),
-        MsgIDs.MAGNETIC:        (make_Struct("3f"),   MagneticField,),
-        MsgIDs.TEMP_PRES:       (make_Struct("2f"),   TemperaturePressure,),
-        MsgIDs.ACC_CALIBRATION: (make_Struct("6f"),   CALIBRATION,),
-        MsgIDs.MAG_CALIBRATION: (make_Struct("6f"),   CALIBRATION,),
-        MsgIDs.GYR_CALIBRATION: (make_Struct("6f"),   CALIBRATION,),
-        MsgIDs.MOTORS:          (make_Struct("5h"),   Motors4),
-        MsgIDs.YIVO_ERROR:      (make_Struct("B"),    YivoError,),
-        MsgIDs.LIDAR_RANGER:    (make_Struct("2HB"),  LidarRanger,),
-    }
     pack_cs = Struct("<B")
 
-    def __init__(self, h0=b'$', h1=b'K'):
+    def __init__(self, database, h0=b'$', h1=b'K'):
         """
         Message header can be changed (not sure why) if you need to
         by setting a new h0 and h1. They must be binary characters.
@@ -207,6 +186,11 @@ class Yivo:
         if not isinstance(h0, bytes) or not isinstance(h1, bytes):
             raise Exception(f"Invalid header bytes: {h0}({type(h0)}) {h1}({type(h1)})")
         self.header = (h0,h1,)
+
+        self.msgInfo = database
+        self.valid_msgids = [int(x) for x in database.keys()]
+
+        self.parser = YivoParser(self.header)
 
     def pack(self, msgID, data=None):
         """
@@ -244,11 +228,11 @@ class Yivo:
         b = ord(self.header[1])
         if (msg[0] != a) or (msg[1] != b):
             # print(msg[:2], self.header)
-            return Errors.INVALID_HEADER, None, None
+            return Errors.INVALID_HEADER, (a,b,), None
 
-        if msgid not in valid_msgids:
+        if msgid not in self.valid_msgids:
             # print(f"invalid id: {msgid}")
-            return Errors.INVALID_MSGID, None, None
+            return Errors.INVALID_MSGID, msgid, None
 
         if (size != 0) and (size != len(payload)):
             # print(len(payload),"!=", size)
@@ -275,48 +259,9 @@ class Yivo:
 
         return Errors.NONE, msgid, val
 
-    # def read_packet(self, ser, retry=64):
-    #     """
-    #     ser: serial object
-    #     retry: how many times to retry reading the serial port to find the header
-
-    #     Return: namedtuple message or None
-    #     """
-    #     # while ser.in_waiting < 5:
-    #     #     time.sleep(0.0001)
-
-    #     # make a FIFO of size 2 to hold the header
-    #     rbuf = deque(maxlen=2)
-    #     rbuf.append(ser.read(1))
-    #     header = deque(self.header)
-
-    #     # while True:
-    #     while retry:
-    #         retry -= 1
-    #         # get header
-    #         rbuf.append(ser.read(1))
-    #         if rbuf != header:
-    #             # print(rbuf)
-    #             continue
-    #         break
-
-    #     # didn't find header
-    #     # if retry == 0:
-    #     #     print("** No msg")
-    #     #     return None
-
-    #     sz = ser.read(2)
-    #     size = (sz[1] << 8) + sz[0]
-    #     msgid = ord(ser.read(1))
-    #     payload = ser.read(size)
-    #     cs = ord(ser.read(1))
-    #     # print(rbuf, sz, msgid.to_bytes(1, 'little'), payload, cs.to_bytes(1, 'little'))
-    #     msg = b''.join([rbuf[0],rbuf[1], sz, msgid.to_bytes(1, 'little'), payload, cs.to_bytes(1, 'little')])
-    #     # return list(rbuf)+sz+[msgid]+payload+[cs]
-
-    #     try:
-    #         fmt, obj = self.msgInfo[msgid]
-    #     except KeyError:
-    #         return None
-    #     data = fmt.unpack(msg)[4:-1]
-    #     return obj(*data)
+    def parse(self, c):
+        if self.parser.parse(c):
+            data, msgid = self.parser.get_info()
+            err, msgid, msg = self.unpack(data)
+            return True, msgid, msg
+        return False, None, None
