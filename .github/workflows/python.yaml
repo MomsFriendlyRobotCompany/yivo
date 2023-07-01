@@ -1,20 +1,4 @@
-# name: Cpp
-# on: [push]
-
-# jobs:
-#     build:
-#         runs-on: ubuntu-latest
-#         steps:
-#             - uses: actions/checkout@master
-#             - name: Test yivo
-#               run: |
-#                 mkdir -p build
-#                 cd build
-#                 cmake ..
-#                 make
-#                 ./gtests/all-gtest
-
-name: CheckPackage
+name: Python
 on: [push]
 
 jobs:
@@ -38,4 +22,4 @@ jobs:
                 source .venv/bin/activate
                 pip install -U pip setuptools wheel poetry pytest
                 poetry install
-                pytest tests/
+                pytest python/tests/
