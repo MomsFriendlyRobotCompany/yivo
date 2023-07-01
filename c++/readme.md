@@ -2,26 +2,29 @@
 
 # Yivo
 
+**Work in Progress**
 
-![Cpp](https://github.com/MomsFriendlyRobotCompany/yivo/workflows/Cpp/badge.svg)
-![GitHub](https://img.shields.io/github/license/MomsFriendlyRobotCompany/yivo)
+# API
 
+| Part | In Checksum | Type  | Description |
+|------|-------------|-------|-------------|
+| Header |   | `uint8_t[2]`  | default `$K` |
+| Size   | x | `uint16_t`    | 0-65,535 bytes |
+| Type   | x | `uint8_t`     | 256 message IDs |
+| Data   | x | `uint8_t[NN]` | payload data array |
+| Checksum | | `uint8_t`     | XOR of size, type, and data bytes |
 
-Trying to standardize the way I access sensors.
+| 0 | 1 | 2 | 3 | 4 | ... | -1 |
+|---|---|---|---|---|-----|----|
+|`$`|`K`| N | N | T | ... | checksum |
 
-Message format:
+## Todo
 
-```
-[ 0, 1, 2, 3,4, ..., -1]
-[h0,h1,LN,HN,T, ..., CS]
-Header: h0, h1
-N = (HN << 8) + LN, max data bytes is 65,536 Bytes
-  HN: High Byte
-  LN: Low Byte
-T: packet type or MsgID
-CS: simple checksum
-```
-
+- [ ] Should I move to a 16b checksum? I don't have many messages, but
+      the payload can be 16b long
+- [x] Remove messages from library. This is just a binary packer and
+      not dependant on the message format other than, it is a `struct`
+- [x] Make a header only library
 
 # MIT License
 
