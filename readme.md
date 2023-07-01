@@ -2,6 +2,11 @@
 
 # Yivo
 
+
+![Cpp](https://github.com/MomsFriendlyRobotCompany/yivo/workflows/Cpp/badge.svg)
+![GitHub](https://img.shields.io/github/license/MomsFriendlyRobotCompany/yivo)
+
+
 Trying to standardize the way I access sensors.
 
 Message format:
