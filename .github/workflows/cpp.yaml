@@ -8,7 +8,7 @@ jobs:
             - uses: actions/checkout@master
             - name: Test yivo
               run: |
-                cd cpp
+                cd c++
                 mkdir -p build
                 cd build
                 cmake ..
