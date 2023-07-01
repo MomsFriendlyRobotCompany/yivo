@@ -31,5 +31,5 @@ pytest = "*"
 numpy = "*"
 
 [build-system]
-requires = ["poetry>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.masonry.api"
