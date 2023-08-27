@@ -115,6 +115,8 @@ class Yivo:
         """
         size, msgid, payload, cs = chunk(msg)
 
+        # print(f">> size: {size}\n id: {msgid}\n pl: {payload}\n cs: {cs}")
+
         a = ord(self.header[0])
         b = ord(self.header[1])
         if (msg[0] != a) or (msg[1] != b):
@@ -142,7 +144,10 @@ class Yivo:
 
         if size > 0:
             info = fmt.unpack(msg)
-            # print(info)
+            # print("info", info)
+            # print(type(obj))
+            # if isinstance(tuple, obj): val = tuple(info[4:-1])
+            # else: val = obj(*info[4:-1])
             val = obj(*info[4:-1])
         else:
             val = REQUEST(msgid)
@@ -153,6 +158,9 @@ class Yivo:
     def parse(self, c):
         if self.parser.parse(c):
             data, msgid = self.parser.get_info()
+            # print(">> pase:",msgid, data)
             err, msgid, msg = self.unpack(data)
-            return True, msgid, msg
+            if err == Errors.NONE:
+                return True, msgid, msg
+            return err, msgid, msg
         return False, None, None

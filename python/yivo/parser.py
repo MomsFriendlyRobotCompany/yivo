@@ -93,8 +93,8 @@ class YivoParser:
             if cs == cc:
                 ret = True
                 self.readState = ReadState_t.NONE_STATE
-                print("success")
-            else:
-                print("checksum fail")
+            #     print("success")
+            # else:
+            #     print("checksum fail")
 
         return ret

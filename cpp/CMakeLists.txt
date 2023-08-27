@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.25)
-PROJECT(yivo VERSION "2023.02.18")
+cmake_minimum_required(VERSION 3.21)
+PROJECT(yivo VERSION "2023.08.27")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,6 +23,14 @@ if(PROJECT_IS_TOP_LEVEL)
 
     set(BUILD_EXAMPLES ON)
     set(BUILD_GTESTS ON)
+
+    include(FetchContent)
+    FetchContent_Declare(
+        gtest
+        URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    )
+    FetchContent_MakeAvailable(gtest)
+
 else()
     message(STATUS "-> ${PROJECT_NAME} is submodule")
     set(BUILD_EXAMPLES OFF)

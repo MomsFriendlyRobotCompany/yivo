@@ -36,6 +36,11 @@ union int_t {
   uint8_t b8[2];
 };
 
+struct YivoPack_t {
+  uint8_t *buffer;
+  uint16_t size;
+};
+
 enum Error : uint8_t {
   NONE             = 0,
   INVALID_HEADER   = 1,
@@ -75,10 +80,12 @@ public:
   data: buffer containing data to be sent
   sz: size of data to be sent, sz < (BUFFER_SIZE - 6)
   */
-  int pack(uint8_t msgid, uint8_t *data, uint16_t sz) {
+  YivoPack_t pack(uint8_t msgid, uint8_t *data, uint16_t sz) {
+    YivoPack_t ret{0};
+
     if (sz + 6 > YIVO_BUFFER_SIZE) {
       error_msg = Error::EXCEED_BUFFER;
-      return -1;
+      return ret;
     }
 
     memset(this->buff, 0, YIVO_BUFFER_SIZE);
@@ -98,7 +105,10 @@ public:
     }
     this->buff[5 + sz] = cs;
     this->payload_size = sz;
-    return sz + 6;
+
+    ret.buffer = this->buff;
+    ret.size = sz + 6;
+    return ret;
   }
 
   bool valid_msg(uint8_t *buf) {
