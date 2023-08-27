@@ -13,5 +13,4 @@ jobs:
                 cd build
                 cmake ..
                 make
-                ./gtests/main-gtest
-                ./gtests/msgs-gtest
+                ./gtests/test-all
