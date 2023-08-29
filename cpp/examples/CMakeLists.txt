@@ -1,13 +1,10 @@
-list(APPEND gtests
-    main.cpp
-    save.cpp
+list(APPEND apps
+    main
+    save
 )
 
 # message(STATUS "yivo::Examples ----------------------")
-foreach(src ${gtests})
-    get_filename_component(name ${src} NAME_WE)
-    # message(STATUS " -> ${name}")
-    add_executable(${name} ${src})
+foreach(name ${apps})
+    add_executable(${name} ${name}.cpp)
     target_link_libraries(${name} ${PROJECT_NAME})
-    add_test(NAME ${name} COMMAND ${name})
 endforeach()
