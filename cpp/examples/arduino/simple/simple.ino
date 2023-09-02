@@ -1,62 +1,46 @@
 #include <yivo.hpp>
 
-
-// #include <yivo/yivo.hpp>
-
-// struct Buffer {
-//   union {
-//     float    f[10];
-//     uint32_t l[10];
-//     uint8_t  b[10*sizeof(float)];
-//   };
-//   const uint32_t size = 10;
-
-//   void clear() {
-//     memset(b, 0, size);
-//   }
-// };
+constexpr uint8_t MSG_ID = 10;
 
 struct Sensor {
-    // union {
-    //     float f[10];
-    //     uint8_t b[10*sizeof(float)];
-    //     uint32_t l[10];
-    // } data;
-    Buffer<256> data;
+  float a,b,c;
+  long d;
 };
 
 
 Yivo yivo;
 Sensor sen;
+YivoPack_t ret;
 
 void setup() {
   Serial.begin(9600);
-
-  sen.data.clear();
-
-  sen.data.f[0] = 1.1; // x
-  sen.data.f[1] = 2.2; //y
-  sen.data.f[2] = 3.3; // z
-  sen.data.f[3] = 4.4; // temp
-  sen.data.l[4] = millis(); // ts
-
-  int err = yivo.pack(IMU_AT, sen.data.b, 5*sizeof(float));
-
-  uint8_t *buff = yivo.get_buffer();
-  uint16_t size = yivo.get_total_size();
 }
 
 void loop() {
-  while (Serial.available() > 0) {
+  // see if we received a message?
+  bool ok = false;
+  int num = Serial.available();
+  while (num-- > 0) {
     int b = Serial.read();
-    // uint8_t msgid = yivo.read_packet();
-    if (b == 'g') {
-    // if (msgid == IMU_AT) {
-      sen.data.l[4] = millis(); // ts
-      int err = yivo.pack_n_send(IMU_AT, sen.data.b, 5*sizeof(float));
-    }
-    else {
-      Serial.println("unknown");
-    }
+    ok = yivo.read(b);
+    if (ok) break;
   }
+
+  if (ok) {
+    uint8_t id = yivo.get_buffer_msgid(); // what message?
+    Sensor s = yivo.unpack<Sensor>(); // decode the message
+  }
+
+  // send a message back
+  sen.a = 1.1; // x
+  sen.b = 2.2; // y
+  sen.c = 3.3; // z
+  sen.d = millis(); // timestamp
+
+  ret = yivo.pack(
+    MSG_ID,
+    reinterpret_cast<uint8_t *>(&sen),
+    sizeof(Sensor));
+
+  Serial.write(ret.data(), ret.size());
 }

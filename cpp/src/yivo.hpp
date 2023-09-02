@@ -26,6 +26,7 @@ SOFTWARE.
 
 #include <cstdint>
 #include <cstring>
+#include <vector>
 
 // #include<iostream>
 // using std::cout;
@@ -36,10 +37,6 @@ union int_t {
   uint8_t b8[2];
 };
 
-struct YivoPack_t {
-  uint8_t *buffer;
-  uint16_t size;
-};
 
 enum Error : uint8_t {
   NONE             = 0,
@@ -50,6 +47,14 @@ enum Error : uint8_t {
   INVALID_MSGID    = 16,
   EXCEED_BUFFER    = 32
 };
+
+// struct YivoPack_t {
+//   uint8_t *buffer = nullptr;
+//   uint16_t size = 0;
+//   Error error = Error::NONE;
+// };
+
+using YivoPack_t = std::vector<uint8_t>;
 
 uint8_t checksum(uint16_t payload_size, uint8_t msgid, uint8_t *data) {
   uint8_t cs = 0;
@@ -81,35 +86,85 @@ public:
   sz: size of data to be sent, sz < (BUFFER_SIZE - 6)
   */
   YivoPack_t pack(uint8_t msgid, uint8_t *data, uint16_t sz) {
-    YivoPack_t ret{0};
+    YivoPack_t ret(sz + 6, 0);
 
-    if (sz + 6 > YIVO_BUFFER_SIZE) {
-      error_msg = Error::EXCEED_BUFFER;
-      return ret;
-    }
+    // if (sz + 6 > 65535) {
+    //   ret.error = Error::EXCEED_BUFFER;
+    //   return ret;
+    // }
 
-    memset(this->buff, 0, YIVO_BUFFER_SIZE);
-    this->buff[0] = h0;
-    this->buff[1] = h1;
-    this->buff[2] = uint8_t(sz & 0xFF); // low byte
-    this->buff[3] = uint8_t(sz >> 8);   // high byte
-    this->buff[4] = msgid;
+    // memset(this->buff, 0, YIVO_BUFFER_SIZE);
+    // this->buff[0] = h0;
+    // this->buff[1] = h1;
+    // this->buff[2] = uint8_t(sz & 0xFF); // low byte
+    // this->buff[3] = uint8_t(sz >> 8);   // high byte
+    // this->buff[4] = msgid;
 
+    ret[0] = h0;
+    ret[1] = h1;
+    ret[2] = uint8_t(sz & 0xFF); // low byte
+    ret[3] = uint8_t(sz >> 8);   // high byte
+    ret[4] = msgid;
+
+    // ret.push_back(h0);
+    // ret.push_back(h1);
+    // ret.push_back(uint8_t(sz & 0xFF)); // low byte
+    // ret.push_back(uint8_t(sz >> 8));   // high byte
+    // ret.push_back(msgid);
+
+    // uint8_t cs;
+    // if (sz > 0) {
+    //   memcpy(&this->buff[5], data, sz);
+    //   cs = checksum(sz, msgid, data);
+    // }
+    // else {
+    //   cs = msgid;
+    // }
+    // this->buff[5 + sz] = cs;
+    // this->payload_size = sz;
     uint8_t cs;
     if (sz > 0) {
-      memcpy(&this->buff[5], data, sz);
+      memcpy(&ret[5], data, sz);
       cs = checksum(sz, msgid, data);
     }
-    else {
-      cs = msgid;
-    }
-    this->buff[5 + sz] = cs;
+    else cs = msgid;
+    ret[5 + sz] = cs;
     this->payload_size = sz;
 
-    ret.buffer = this->buff;
-    ret.size = sz + 6;
+    // ret.buffer = this->buff;
+    // ret.size = sz + 6;
     return ret;
   }
+  // YivoPack_t pack(uint8_t msgid, uint8_t *data, uint16_t sz) {
+  //   YivoPack_t ret{0};
+
+  //   if (sz + 6 > YIVO_BUFFER_SIZE) {
+  //     ret.error = Error::EXCEED_BUFFER;
+  //     return ret;
+  //   }
+
+  //   memset(this->buff, 0, YIVO_BUFFER_SIZE);
+  //   this->buff[0] = h0;
+  //   this->buff[1] = h1;
+  //   this->buff[2] = uint8_t(sz & 0xFF); // low byte
+  //   this->buff[3] = uint8_t(sz >> 8);   // high byte
+  //   this->buff[4] = msgid;
+
+  //   uint8_t cs;
+  //   if (sz > 0) {
+  //     memcpy(&this->buff[5], data, sz);
+  //     cs = checksum(sz, msgid, data);
+  //   }
+  //   else {
+  //     cs = msgid;
+  //   }
+  //   this->buff[5 + sz] = cs;
+  //   this->payload_size = sz;
+
+  //   ret.buffer = this->buff;
+  //   ret.size = sz + 6;
+  //   return ret;
+  // }
 
   bool valid_msg(uint8_t *buf) {
     if ((buf[0] != h0) || (buf[1] != h1)) return false;
@@ -192,7 +247,7 @@ public:
       break;
     case S1_STATE:
       readState    = TYPE_STATE;
-      buff[4]      = c; // type
+      buff[4]      = c; // type or msg id
       buffer_msgid = c;
       break;
     case TYPE_STATE:

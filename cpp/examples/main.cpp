@@ -13,20 +13,32 @@ struct Sensor {
 int main() {
   Yivo yivo;
   Sensor sen;
-  sen.f[0] = 1.1;
-  sen.f[1] = 2.2;
-  sen.f[2] = 3.3;
+  sen.f[0] = 1.1f;
+  sen.f[1] = 20.02f;
+  sen.f[2] = 300.003f;
 
-  yivo.pack(10, reinterpret_cast<uint8_t *>(&sen), sizeof(Sensor));
+  YivoPack_t ret = yivo.pack(
+    10,
+    reinterpret_cast<uint8_t *>(&sen),
+    sizeof(Sensor));
 
-  uint8_t *buff = yivo.get_buffer();
-  uint16_t size = yivo.get_total_size();
+  // simulate reading in on byte at a time
+  bool ok = false;
+  for (const uint8_t& m: ret) {
+    ok = yivo.read(m); // fill internal buffer
+  }
 
-  Sensor s2     = yivo.unpack<Sensor>();
+  // double check we get entire message
+  if (!ok) cout << "FAIL read" << endl;
+
+  // turn bytes into message struct
+  Sensor s2 = yivo.unpack<Sensor>();
+
   if (sen.f[0] == s2.f[0] && sen.f[1] == s2.f[1] && sen.f[2] == s2.f[2]) {
+    cout << "id: " << (int)yivo.get_buffer_msgid() << endl;
     cout << "good!" << endl;
   }
-  else cout << "crap!" << endl;
+  else cout << "FAIL unpack" << endl;
 
   return 0;
 }
