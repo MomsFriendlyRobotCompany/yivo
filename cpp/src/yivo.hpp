@@ -27,8 +27,8 @@ SOFTWARE.
 #include <cstdint>
 #include <cstring>
 #include <vector>
-
-// #include<iostream>
+#include <numeric> // std::accumulate
+#include<iostream>
 // using std::cout;
 // using std::endl;
 
@@ -48,14 +48,25 @@ enum Error : uint8_t {
   EXCEED_BUFFER    = 32
 };
 
-// struct YivoPack_t {
-//   uint8_t *buffer = nullptr;
-//   uint16_t size = 0;
-//   Error error = Error::NONE;
-// };
-
 using YivoPack_t = std::vector<uint8_t>;
 
+static
+std::string to_string(const YivoPack_t& msg) {
+  std::string s;
+  if (msg.size() == 0) return s;
+  return std::accumulate(msg.begin()+1, msg.end(), std::to_string(int(msg[0])),
+    [](const std::string& a, uint8_t b) {
+      return a + "," + std::to_string(int(b));
+    }
+  );
+}
+
+static
+std::ostream &operator<<(std::ostream &os, YivoPack_t const &msg) {
+  return os << to_string(msg);
+}
+
+static
 uint8_t checksum(uint16_t payload_size, uint8_t msgid, uint8_t *data) {
   uint8_t cs = 0;
   // uint8_t hb = uint8_t(size >> 8);
@@ -73,6 +84,7 @@ uint8_t checksum(uint16_t payload_size, uint8_t msgid, uint8_t *data) {
 }
 
 constexpr uint16_t YIVO_BUFFER_SIZE = 128;
+constexpr uint8_t YIVO_FAIL = 0;
 
 class Yivo {
 public:
@@ -88,40 +100,12 @@ public:
   YivoPack_t pack(uint8_t msgid, uint8_t *data, uint16_t sz) {
     YivoPack_t ret(sz + 6, 0);
 
-    // if (sz + 6 > 65535) {
-    //   ret.error = Error::EXCEED_BUFFER;
-    //   return ret;
-    // }
-
-    // memset(this->buff, 0, YIVO_BUFFER_SIZE);
-    // this->buff[0] = h0;
-    // this->buff[1] = h1;
-    // this->buff[2] = uint8_t(sz & 0xFF); // low byte
-    // this->buff[3] = uint8_t(sz >> 8);   // high byte
-    // this->buff[4] = msgid;
-
     ret[0] = h0;
     ret[1] = h1;
     ret[2] = uint8_t(sz & 0xFF); // low byte
     ret[3] = uint8_t(sz >> 8);   // high byte
     ret[4] = msgid;
 
-    // ret.push_back(h0);
-    // ret.push_back(h1);
-    // ret.push_back(uint8_t(sz & 0xFF)); // low byte
-    // ret.push_back(uint8_t(sz >> 8));   // high byte
-    // ret.push_back(msgid);
-
-    // uint8_t cs;
-    // if (sz > 0) {
-    //   memcpy(&this->buff[5], data, sz);
-    //   cs = checksum(sz, msgid, data);
-    // }
-    // else {
-    //   cs = msgid;
-    // }
-    // this->buff[5 + sz] = cs;
-    // this->payload_size = sz;
     uint8_t cs;
     if (sz > 0) {
       memcpy(&ret[5], data, sz);
@@ -131,64 +115,55 @@ public:
     ret[5 + sz] = cs;
     this->payload_size = sz;
 
-    // ret.buffer = this->buff;
-    // ret.size = sz + 6;
     return ret;
   }
-  // YivoPack_t pack(uint8_t msgid, uint8_t *data, uint16_t sz) {
-  //   YivoPack_t ret{0};
 
-  //   if (sz + 6 > YIVO_BUFFER_SIZE) {
-  //     ret.error = Error::EXCEED_BUFFER;
-  //     return ret;
-  //   }
-
-  //   memset(this->buff, 0, YIVO_BUFFER_SIZE);
-  //   this->buff[0] = h0;
-  //   this->buff[1] = h1;
-  //   this->buff[2] = uint8_t(sz & 0xFF); // low byte
-  //   this->buff[3] = uint8_t(sz >> 8);   // high byte
-  //   this->buff[4] = msgid;
-
-  //   uint8_t cs;
-  //   if (sz > 0) {
-  //     memcpy(&this->buff[5], data, sz);
-  //     cs = checksum(sz, msgid, data);
-  //   }
-  //   else {
-  //     cs = msgid;
-  //   }
-  //   this->buff[5 + sz] = cs;
-  //   this->payload_size = sz;
-
-  //   ret.buffer = this->buff;
-  //   ret.size = sz + 6;
-  //   return ret;
-  // }
-
-  bool valid_msg(uint8_t *buf) {
+  bool valid_msg(uint8_t *buf, uint16_t size) {
+    uint16_t pl_size = size - 6;
+    if (buf == nullptr) return false;
     if ((buf[0] != h0) || (buf[1] != h1)) return false;
-    uint16_t len     = (buf[3] << 1) & buf[2];
+    uint16_t payload_len     = (buf[3] << 8) | buf[2];
+
+    // std::cout << char(buf[0]) << " " << char(buf[1]) << std::endl;
+    // std::cout << int(len) << " " << int(size) << std::endl;
+
+    if (payload_len != pl_size) return false;
     uint8_t msgid    = buf[4];
     uint8_t *payload = &buf[5];
-    uint8_t cs       = checksum(len, msgid, payload);
-    if (cs != buf[len + 5]) return false;
+    uint8_t cs       = checksum(payload_len, msgid, payload);
+    // std::cout << int(cs) << " " << int(buf[size-1]) << std::endl;
+    if (cs != buf[size-1]) return false;
     return true;
   }
 
-  template <typename T> T unpack_buffer(uint8_t *buf) {
-    T val;
-    uint16_t len = (buf[3] << 8) | buf[2];
-    memcpy(reinterpret_cast<void *>(&val), reinterpret_cast<void *>(&buf[5]),
-           len);
+  inline
+  bool valid_msg(YivoPack_t& msg) {
+    return valid_msg(msg.data(), msg.size());
+  }
+
+  template <typename T>
+  // inline
+  T unpack(uint8_t* b, size_t size) {
+    T val{0};
+    if (b == nullptr) return val;
+    if (!valid_msg(b, size)) return val;
+    uint16_t len = (b[3] << 8) | b[2];
+    memcpy((void *)(&val), (void *)(&b[5]), len);
     return val;
   }
 
-  template <typename T> inline T unpack() {
-    // T val;
-    // memcpy(&val, this->get_payload_buffer(), this->get_payload_size());
-    // return val;
-    return unpack_buffer<T>(this->get_buffer());
+  template <typename T>
+  inline
+  T unpack(YivoPack_t& msg) {
+    return unpack<T>(msg.data(), msg.size());
+  }
+
+  template <typename T>
+  inline
+  T unpack() {
+    // for (int i=0; i < (payload_size+6); ++i) std::cout << int(buff[i]) << ",";
+    // std::cout << std::endl;
+    return unpack<T>(buff, payload_size+6);
   }
 
   enum ReadState_t {
@@ -207,9 +182,8 @@ public:
   finds a good message.
   Returns: bool true - valid message, false - no message yet
   */
-  bool read(uint8_t c) {
-    bool ret = false;
-    // cout << "readState: " << int(readState) << endl;
+  uint8_t read(uint8_t c) {
+    uint8_t ret = YIVO_FAIL;
     switch (readState) {
     case NONE_STATE:
       if (c == this->h0) {
@@ -259,11 +233,10 @@ public:
       if ((index - 5) == (payload_size)) readState = CS_STATE;
       break;
     case CS_STATE:
-      buff[index + 1] = c; // checksum
+      buff[index] = c; // checksum
       // check if cs is correct
-      uint8_t cs = checksum(payload_size, buff[4], &buff[5]);
-      if (cs == c) ret = true;
-      // else cout << "crap " << int(cs) << " " << int(c) << endl;
+      uint8_t cs = checksum(payload_size, buffer_msgid, &buff[5]);
+      if (cs == c) ret = buffer_msgid;
       readState = NONE_STATE;
       break;
     }
@@ -271,15 +244,15 @@ public:
     return ret;
   }
 
-  inline uint8_t *get_buffer() { return this->buff; }
+  // inline uint8_t *get_buffer() { return this->buff; }
 
-  inline uint8_t *get_payload_buffer() { return &this->buff[5]; }
+  // inline uint8_t *get_payload_buffer() { return &this->buff[5]; }
 
-  inline uint16_t get_total_size() const { return this->payload_size + 6; }
+  // inline uint16_t get_total_size() const { return this->payload_size + 6; }
 
-  inline uint16_t get_payload_size() const { return this->payload_size; }
+  // inline uint16_t get_payload_size() const { return this->payload_size; }
 
-  inline const uint8_t get_buffer_msgid() const { return buffer_msgid; }
+  // inline const uint8_t get_buffer_msgid() const { return buffer_msgid; }
 
   inline const uint8_t get_error_msg() const { return error_msg; }
 
@@ -301,6 +274,8 @@ protected:
     buffer_msgid = 0;
   }
 };
+
+
 
 // #ifdef Arduino_h
 //     // inline int pack_n_send(uint8_t msgid) {
