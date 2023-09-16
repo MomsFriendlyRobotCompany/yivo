@@ -32,10 +32,12 @@ SOFTWARE.
 // using std::cout;
 // using std::endl;
 
+namespace HIDDEN {
 union int_t {
   uint16_t b16;
   uint8_t b8[2];
 };
+}
 
 
 enum Error : uint8_t {
@@ -72,7 +74,7 @@ uint8_t checksum(uint16_t payload_size, uint8_t msgid, uint8_t *data) {
   // uint8_t hb = uint8_t(size >> 8);
   // uint8_t lb = uint8_t(size & 0xFFFF);
   // cs = lb ^ hb;
-  int_t v;
+  HIDDEN::int_t v;
   v.b16 = payload_size;
   cs    = v.b8[0] ^ v.b8[1];
   cs ^= msgid;
@@ -83,13 +85,14 @@ uint8_t checksum(uint16_t payload_size, uint8_t msgid, uint8_t *data) {
   return cs;
 }
 
-constexpr uint16_t YIVO_BUFFER_SIZE = 128;
-constexpr uint8_t YIVO_FAIL = 0;
+// constexpr uint16_t YIVO_BUFFER_SIZE = 128;
+// constexpr uint8_t YIVO_FAIL = 0;
+constexpr uint8_t YIVO_NO_ID = 0;
 
 class Yivo {
 public:
-  Yivo(char a = '$', char b = 'K')
-      : h0(a), h1(b), readState(NONE_STATE), error_msg(NONE) {}
+  Yivo(char a = '$', char b = 'K', size_t size=64)
+      : h0(a), h1(b), readState(NONE_STATE), error_msg(NONE), reserve_size(size) { buffer.reserve(size); }
   ~Yivo() {}
 
   /*
@@ -161,9 +164,7 @@ public:
   template <typename T>
   inline
   T unpack() {
-    // for (int i=0; i < (payload_size+6); ++i) std::cout << int(buff[i]) << ",";
-    // std::cout << std::endl;
-    return unpack<T>(buff, payload_size+6);
+    return unpack<T>(buffer.data(), payload_size+6);
   }
 
   enum ReadState_t {
@@ -183,59 +184,69 @@ public:
   Returns: bool true - valid message, false - no message yet
   */
   uint8_t read(uint8_t c) {
-    uint8_t ret = YIVO_FAIL;
+    uint8_t ret = YIVO_NO_ID;
     switch (readState) {
     case NONE_STATE:
       if (c == this->h0) {
         reset_buffer();
         readState = H0_STATE;
-        buff[0]   = c; // h0
+        // buff[0]   = c; // h0
+        buffer.push_back(c); // h0
         error_msg = NONE;
       }
       else {
+        reset_buffer();
         error_msg = INVALID_HEADER;
       }
       break;
     case H0_STATE:
       if (c == this->h1) {
         readState = H1_STATE;
-        buff[1]   = c; // h1
+        // buff[1]   = c; // h1
+        buffer.push_back(c); // h1
       }
       else {
         readState = NONE_STATE;
-        index     = 0;
-        buff[0]   = 0;
+        // index     = 0;
+        buffer[0]   = 0;
+        // reset_buffer();
         error_msg = INVALID_HEADER;
       }
       break;
     case H1_STATE:
       readState = S0_STATE;
-      buff[2]   = c; // size0
+      // buff[2]   = c; // size0
+      buffer.push_back(c); // size0
       break;
     case S0_STATE:
       readState    = S1_STATE;
-      payload_size = (c << 8) | buff[2];
+      payload_size = (c << 8) | buffer[2];
       // cout << "size: " << int(buff[2]) << " " << int(c) << " " <<
       // payload_size << endl;
-      buff[3] = c; // size1
+      // buff[3] = c; // size1
+      buffer.push_back(c); // size1
       break;
     case S1_STATE:
       readState    = TYPE_STATE;
-      buff[4]      = c; // type or msg id
+      // buff[4]      = c; // type or msg id
+      buffer.push_back(c); // type or msg id
       buffer_msgid = c;
       break;
     case TYPE_STATE:
       readState = DATA_STATE;
-      buff[5]   = c; // data0
+      // buff[5]   = c; // data0
+      buffer.push_back(c); // data0
       break;
     case DATA_STATE:
-      buff[index++] = c; // data1-dataN
-      if ((index - 5) == (payload_size)) readState = CS_STATE;
+      // buff[index++] = c; // data1-dataN
+      buffer.push_back(c); // data1-dataN
+      if ((buffer.size() - 5) == payload_size) readState = CS_STATE;
       break;
     case CS_STATE:
-      buff[index] = c; // checksum
+      // buff[index] = c; // checksum
+      buffer.push_back(c); // checksum
       // check if cs is correct
-      uint8_t cs = checksum(payload_size, buffer_msgid, &buff[5]);
+      uint8_t cs = checksum(payload_size, buffer_msgid, &buffer[5]);
       if (cs == c) ret = buffer_msgid;
       readState = NONE_STATE;
       break;
@@ -244,33 +255,24 @@ public:
     return ret;
   }
 
-  // inline uint8_t *get_buffer() { return this->buff; }
-
-  // inline uint8_t *get_payload_buffer() { return &this->buff[5]; }
-
-  // inline uint16_t get_total_size() const { return this->payload_size + 6; }
-
-  // inline uint16_t get_payload_size() const { return this->payload_size; }
-
-  // inline const uint8_t get_buffer_msgid() const { return buffer_msgid; }
-
   inline const uint8_t get_error_msg() const { return error_msg; }
 
 protected:
   uint8_t error_msg;
-  uint8_t buff[YIVO_BUFFER_SIZE];
   uint16_t payload_size; // payload size, doesn't count header/cs (+6B more)
   const char h0, h1;     // header bytes
 
-  uint16_t index;
+  // uint16_t index;
+  size_t reserve_size;
   uint8_t readState;
   uint8_t buffer_msgid;
+  std::vector<uint8_t> buffer;
 
   void reset_buffer() {
-    memset(buff, 0, YIVO_BUFFER_SIZE);
+    buffer.clear();
+    buffer.reserve(reserve_size);
     readState    = NONE_STATE;
     payload_size = 0;
-    index        = 6;
     buffer_msgid = 0;
   }
 };
