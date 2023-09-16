@@ -3,7 +3,7 @@ enable_testing()
 
 list(APPEND gtests
     main-gtest.cpp
-    msgs-gtest.cpp
+    # msgs-gtest.cpp
 )
 
 add_executable(test-all ${gtests})

@@ -50,11 +50,6 @@ enum Error : uint8_t {
 
 using YivoPack_t = std::vector<uint8_t>;
 
-// static
-// message_t &operator<<(YivoPack_t &msg, const std::string& s) {
-//   for (int i=0; i<s.size(); ++i) msg.push_back((uint8_t)s[i]);
-//   return msg;
-// }
 static
 std::string to_string(const YivoPack_t& msg) {
   std::string s;
