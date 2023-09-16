@@ -35,7 +35,7 @@ union int_t {
   uint16_t b16;
   uint8_t b8[2];
 };
-}
+} // hidden
 
 
 enum Error : uint8_t {
