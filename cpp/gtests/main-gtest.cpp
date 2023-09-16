@@ -32,7 +32,7 @@ TEST(packing, read) {
   YivoPack_t msg = yivo.pack(10, reinterpret_cast<uint8_t *>(&m), sizeof(msg_t));
   EXPECT_TRUE(msg.size() == sizeof(msg_t)+header_size);
 
-  uint8_t id = YIVO_FAIL;
+  uint8_t id = YIVO_NO_ID;
   for (const uint8_t& c: msg) id = yivo.read(c);
   EXPECT_EQ(id, 10);
 
