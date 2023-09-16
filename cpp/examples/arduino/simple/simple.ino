@@ -18,18 +18,16 @@ void setup() {
 
 void loop() {
   // see if we received a message?
-  bool ok = false;
+  uint8_t id = 0;
   int num = Serial.available();
   while (num-- > 0) {
     int b = Serial.read();
-    ok = yivo.read(b);
-    if (ok) break;
+    id = yivo.read(b);
+    if (id > 0) break;
   }
 
-  if (ok) {
-    uint8_t id = yivo.get_buffer_msgid(); // what message?
-    Sensor s = yivo.unpack<Sensor>(); // decode the message
-  }
+  Sensor s;
+  if (id == MSG_ID) s = yivo.unpack<Sensor>(); // decode the message
 
   // send a message back
   sen.a = 1.1; // x

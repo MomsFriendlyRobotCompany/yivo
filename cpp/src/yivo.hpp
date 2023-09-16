@@ -29,8 +29,6 @@ SOFTWARE.
 #include <vector>
 #include <numeric> // std::accumulate
 #include<iostream>
-// using std::cout;
-// using std::endl;
 
 namespace HIDDEN {
 union int_t {
@@ -276,56 +274,3 @@ protected:
     buffer_msgid = 0;
   }
 };
-
-
-
-// #ifdef Arduino_h
-//     // inline int pack_n_send(uint8_t msgid) {
-//     //     // return pack_n_send(msgid, nullptr, 0);
-//     //     return pack_n_send(msgid, this->buff, this->payload_size);
-//     // }
-
-//     int pack_n_send(uint8_t msgid, uint8_t *data, uint16_t sz) {
-//       int size = pack(msgid, data, sz);
-//       if (size != -1) {
-//         Serial.write(buff, size);
-//       }
-//       return size;
-//     }
-
-//     /*
-//     Reads in a packet from a serial connection.
-
-//     Returns: message ID or -1 on error
-//     */
-//     int read_packet() {
-//       int retry = 16;
-//       while (retry-- > 0) {
-//         if (Serial.available() > 5) {
-//           buff[0] = buff[1];
-//           buff[1] = Serial.read();
-//           if ((buff[0] == this->h0) && (buff[1] == this->h1)) {
-//             buff[2] = Serial.read(); // low byte
-//             buff[3] = Serial.read(); // high byte
-//             uint16_t payload_size = (buff[3] << 8) + buff[2];
-//             buff[4] = Serial.read(); // msgid
-//             Serial.readBytes(reinterpret_cast<char*>(&buff[5]),
-//             payload_size); // payload buff[5+payload_size] = Serial.read();
-//             // checksum return buff[4]; // msgid
-//           }
-//         }
-//         else delay(100);
-//       }
-
-//       return -1;
-//     }
-// #else
-//     int read_packet() {
-//         return -1;
-//     }
-
-//     inline int pack_n_send(uint8_t msgid, uint8_t *data=nullptr, uint16_t
-//     sz=0) {
-//         return -1;
-//     }
-// #endif
