@@ -35,7 +35,7 @@ int main() {
   Sensor s2 = yivo.unpack<Sensor>();
 
   if (sen.f[0] == s2.f[0] && sen.f[1] == s2.f[1] && sen.f[2] == s2.f[2]) {
-    cout << "id: " << (int)yivo.get_buffer_msgid() << endl;
+    // cout << "id: " << (int)yivo.get_buffer_msgid() << endl;
     cout << "good!" << endl;
   }
   else cout << "FAIL unpack" << endl;
