@@ -3,7 +3,8 @@
 # Yivo
 
 
-![Cpp](https://github.com/MomsFriendlyRobotCompany/yivo/workflows/Cpp/badge.svg)
+[![Cpp](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/cpp.yaml/badge.svg)](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/cpp.yaml)
+[![Python](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/python.yaml/badge.svg)](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/python.yaml)
 ![GitHub](https://img.shields.io/github/license/MomsFriendlyRobotCompany/yivo)
 
 
