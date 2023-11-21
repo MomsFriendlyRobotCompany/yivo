@@ -2,7 +2,6 @@
 
 # Yivo
 
-
 [![Cpp](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/cpp.yaml/badge.svg)](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/cpp.yaml)
 [![Python](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/python.yaml/badge.svg)](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/python.yaml)
 ![GitHub](https://img.shields.io/github/license/MomsFriendlyRobotCompany/yivo)
@@ -26,16 +25,16 @@ CS: simple checksum
 ## Python
 
 ```python
-from yivo import Yivo, make_Struct
+from yivo import Yivo, MsgInfo
 
 # make some messages we want to send/receive
-A = namedtuple("A","x y")
-B = namedtuple("B", "x y z t")
+A = namedtuple("A","x y")      # id = 1
+B = namedtuple("B", "x y z t") # id = 2
 
-msgdb = {
-    1: (make_Struct("2f"), A), # 2 floats
-    2: (make_Struct("4f"), B)  # 4 floats
-}
+msgdb = MsgInfo()
+msgdb[1] = ("2f", A) # 2 floats
+msgdb[2] = ("4f", B) # 4 floats
+
 yivo = Yivo(msgdb)
 pkt = yivo.pack(1, A(1.,2.))
 
@@ -46,6 +45,8 @@ while id == 0:
 
 err, msg = yivo.unpack() # err > 0 if failure to unpack
 ```
+
+## C++
 
 ```cpp
 #include <yivo.hpp>

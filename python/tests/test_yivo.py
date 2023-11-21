@@ -9,32 +9,43 @@ def test_pack_n_unpack():
     A = namedtuple("A","x y")
     B = namedtuple("B", "x y z t")
 
-    msgdb = {
-        1: (make_Struct("2f"), A), # 2 floats
-        2: (make_Struct("4f"), B)  # 4 floats
-    }
+    # msgdb = {
+    #     1: (make_Struct("2f"), A), # 2 floats
+    #     2: (make_Struct("4f"), B)  # 4 floats
+    # }
+    msgdb = MsgInfo()
+    msgdb[1] = ("2f", A) # 2 floats
+    msgdb[2] = ("4f", B) # 4 floats
 
     yivo = Yivo(msgdb)
-    # print(yivo.msgInfo)
 
     for msgid, (fmt, obj) in list(msgdb.items()):
-        testsz = num_fields(obj)
-        # print(f"testz: {testsz}")
-        msg = yivo.pack(msgid, [pi]*testsz)
-        # print(msgid, msg, obj)
+        imsg = None
+        if msgid == 1: imsg = A(1,2)
+        elif msgid == 2: imsg = B(1,2,3,4)
+        else: assert False
 
-        err,data = yivo.unpack(msg)
+        msg = yivo.pack(msgid, imsg)
+        # print(msgid, msg)
+
+        err, data = yivo.unpack(msg)
         if err > 0:
             assert False, print(err, this_id, data)
             continue
-        assert allclose(tuple(data), tuple([float(x) for x in [pi]*testsz]))
+
+        if msgid == 1:
+            assert allclose(tuple(data), tuple([1,2]))
+        else:
+            assert allclose(tuple(data), tuple([1,2,3,4]))
 
         msg = [chr(x).encode("latin1") for x in msg]
         for i, c in enumerate(msg):
-            msgid = yivo.parse(c)
+            mid = yivo.parse(c)
             # print(i, ok, c, ord(c))
 
-        err, msg = yivo.unpack()
+        assert mid == msgid, print("invalid id")
+
+        err, omsg = yivo.unpack()
 
         assert err == 0, print("final: ", ok, msgid, msg)
-        assert allclose(tuple(msg), tuple([float(x) for x in [pi]*testsz]))
+        assert allclose(tuple(imsg), tuple(omsg))
