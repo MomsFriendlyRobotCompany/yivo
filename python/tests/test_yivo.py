@@ -23,7 +23,7 @@ def test_pack_n_unpack():
         msg = yivo.pack(msgid, [pi]*testsz)
         # print(msgid, msg, obj)
 
-        err,this_id,data = yivo.unpack(msg)
+        err,data = yivo.unpack(msg)
         if err > 0:
             assert False, print(err, this_id, data)
             continue
@@ -31,8 +31,10 @@ def test_pack_n_unpack():
 
         msg = [chr(x).encode("latin1") for x in msg]
         for i, c in enumerate(msg):
-            ok, msgid, msg = yivo.parse(c)
+            msgid = yivo.parse(c)
             # print(i, ok, c, ord(c))
 
-        assert ok, print("final: ", ok, msgid, msg)
+        err, msg = yivo.unpack()
+
+        assert err == 0, print("final: ", ok, msgid, msg)
         assert allclose(tuple(msg), tuple([float(x) for x in [pi]*testsz]))

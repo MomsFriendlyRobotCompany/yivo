@@ -23,6 +23,49 @@ T: packet type or MsgID
 CS: simple checksum
 ```
 
+## Python
+
+```python
+from yivo import Yivo, make_Struct
+
+# make some messages we want to send/receive
+A = namedtuple("A","x y")
+B = namedtuple("B", "x y z t")
+
+msgdb = {
+    1: (make_Struct("2f"), A), # 2 floats
+    2: (make_Struct("4f"), B)  # 4 floats
+}
+yivo = Yivo(msgdb)
+pkt = yivo.pack(1, A(1.,2.))
+
+id = 0
+while id == 0:
+    b = serial_read() # get a byte from somewhere
+    id = yivo.parse(b) # 0 or msg_id
+
+err, msg = yivo.unpack() # err > 0 if failure to unpack
+```
+
+```cpp
+#include <yivo.hpp>
+
+// some messages
+struct A {int a;}; // id 1
+struct B {int b;}; // id 2
+
+Yivo yivo;
+
+YivoPack_t pkt = yivo.pack(1, A{1}, sizeof(A));
+
+uint8_t id = 0;
+while (id == 0) {
+    uint8_t b = serial_read(); // get a byte from somewhere
+    id = yivo.parse(b);
+}
+if (id == 1) A a = yivo.unpack<A>();
+else if (id == 2) B b = yivo.unpack<B>();
+```
 
 # MIT License
 

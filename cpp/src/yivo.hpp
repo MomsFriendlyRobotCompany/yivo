@@ -138,7 +138,7 @@ public:
   finds a good message.
   Returns: bool true - valid message, false - no message yet
   */
-  uint8_t read(uint8_t c) {
+  uint8_t parse(uint8_t c) {
     uint8_t ret = YIVO_NO_ID;
     switch (readState) {
     case NONE_STATE:
@@ -188,6 +188,11 @@ public:
     }
 
     return ret;
+  }
+
+  [[deprecated]]
+  uint8_t read(uint8_t c) {
+    return parse(c);
   }
 
 protected:

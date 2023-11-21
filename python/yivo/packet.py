@@ -17,6 +17,7 @@ class Errors(IntEnum):
     INVALID_CHECKSUM = 4
     INVALID_COMMAND  = 8
     INVALID_MSGID    = 16
+    NO_DATA          = 32
 
 
 
@@ -90,6 +91,7 @@ class Yivo:
         self.valid_msgids = [int(x) for x in database.keys()]
 
         self.parser = YivoParser(self.header)
+        self.data = None
 
     def pack(self, msgID, data=None):
         """
@@ -105,14 +107,26 @@ class Yivo:
             msg = msg[:-1] + self.pack_cs.pack(cs) #cs.to_bytes(1,'little')
         return msg
 
-    def unpack(self,msg):
+    # def unpack(self):
+    #     if self.data is None:
+    #         return Errors.NO_DATA, None
+    #     err, ret = self.unpack(self.data)
+    #     self.data = None
+    #     return err, ret
+
+    def unpack(self, msg=None):
         """
         Unpacks a binary yivo packet
 
         Returns:
-            MsgID
+            Errors
             Message
         """
+        clear = False # doesn't cleanup if failure
+        if msg is None:
+            msg = self.data
+            clear = True
+
         size, msgid, payload, cs = chunk(msg)
 
         # print(f">> size: {size}\n id: {msgid}\n pl: {payload}\n cs: {cs}")
@@ -121,26 +135,26 @@ class Yivo:
         b = ord(self.header[1])
         if (msg[0] != a) or (msg[1] != b):
             # print(msg[:2], self.header)
-            return Errors.INVALID_HEADER, (a,b,), None
+            return Errors.INVALID_HEADER, None
 
         if msgid not in self.valid_msgids:
             # print(f"invalid id: {msgid}")
-            return Errors.INVALID_MSGID, msgid, None
+            return Errors.INVALID_MSGID, None
 
         if (size != 0) and (size != len(payload)):
             # print(len(payload),"!=", size)
-            return Errors.INVALID_LENGTH, None, None
+            return Errors.INVALID_LENGTH, None
         # print(size, len(payload))
 
         if checksum(size, msgid, payload) != cs:
             # print("checksum failure", cs, "!=", checksum(size, msgid, payload))
-            return Errors.INVALID_CHECKSUM, None, None
+            return Errors.INVALID_CHECKSUM, None
         # print(cs, checksum(size, msgid, payload))
 
         try:
             fmt, obj = self.msgInfo[msgid]
         except KeyError:
-            return Errors.INVALID_MSGID, msgid, None
+            return Errors.INVALID_MSGID, None
 
         if size > 0:
             info = fmt.unpack(msg)
@@ -152,15 +166,18 @@ class Yivo:
         else:
             val = REQUEST(msgid)
         # val = None
+        if clear:
+            self.data = None
 
-        return Errors.NONE, msgid, val
+        return Errors.NONE, val
 
     def parse(self, c):
         if self.parser.parse(c):
-            data, msgid = self.parser.get_info()
+            self.data, msgid = self.parser.get_info()
+            return msgid
             # print(">> pase:",msgid, data)
-            err, msgid, msg = self.unpack(data)
-            if err == Errors.NONE:
-                return True, msgid, msg
-            return err, msgid, msg
-        return False, None, None
+            # err, msgid, msg = self.unpack(data)
+            # if err == Errors.NONE:
+            #     return True, msgid, msg
+            # return err, msgid, msg
+        return 0 #False, None, None

@@ -23,13 +23,13 @@ int main() {
     sizeof(Sensor));
 
   // simulate reading in on byte at a time
-  bool ok = false;
+  uint8_t id;
   for (const uint8_t& m: ret) {
-    ok = yivo.read(m); // fill internal buffer
+    id = yivo.parse(m); // fill internal buffer
   }
 
   // double check we get entire message
-  if (!ok) cout << "FAIL read" << endl;
+  if (id == 0) cout << "FAIL read" << endl;
 
   // turn bytes into message struct
   Sensor s2 = yivo.unpack<Sensor>();
