@@ -45,14 +45,18 @@ static
 std::string to_string(const YivoPack_t& msg) {
   std::string s;
   if (msg.size() == 0) return s;
-  return std::accumulate(msg.begin()+1, msg.end(), std::to_string(int(msg[0])),
+  s += (char)msg[0];
+  s += ',';
+  s += (char)msg[1];
+  return std::accumulate(msg.begin()+2, msg.end(), s,
     [](const std::string& a, uint8_t b) {
       return a + "," + std::to_string(int(b));
     }
   );
+  return s;
 }
 
-static
+inline
 std::ostream &operator<<(std::ostream &os, YivoPack_t const &msg) {
   return os << to_string(msg);
 }
