@@ -33,14 +33,16 @@ union int_t {
 };
 } // hidden
 
-// using YivoPack_t = std::vector<uint8_t>;
+
 class YivoPack_t: public std::vector<uint8_t> {
   public:
   uint8_t msgid() { return (*this)[4]; }
   uint16_t playload_size() { return ((*this)[3] << 8) | (*this)[2];}
+  uint8_t checksum() { return (*this)[size()-1]; }
   // uint16_t playload_size() { return size() - 6;}
 };
 
+namespace yivo {
 static
 std::string to_string(const YivoPack_t& msg) {
   std::string s;
@@ -55,10 +57,11 @@ std::string to_string(const YivoPack_t& msg) {
   );
   return s;
 }
+}
 
 inline
 std::ostream &operator<<(std::ostream &os, YivoPack_t const &msg) {
-  return os << to_string(msg);
+  return os << yivo::to_string(msg);
 }
 
 static
