@@ -6,21 +6,30 @@
 [![Python](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/python.yaml/badge.svg)](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/python.yaml)
 ![GitHub](https://img.shields.io/github/license/MomsFriendlyRobotCompany/yivo)
 
-
 Trying to standardize the way I access sensors.
 
-Message format:
+# API
 
-```
-[ 0, 1, 2, 3,4, ..., -1]
-[h0,h1,LN,HN,T, ..., CS]
-Header: h0, h1
-N = (HN << 8) + LN, max data bytes is 65,536 Bytes
-  HN: High Byte
-  LN: Low Byte
-T: packet type or MsgID
-CS: simple checksum
-```
+| Part     | In Checksum | Type  | Description |
+|----------|-------------|-------|-------------|
+| Header   |   | `uint8_t[2]`    | default `$K` |
+| Size     | x | `uint16_t`      | 0-65,535 bytes [L,H] => `(H << 8) | L` |
+| Type     | x | `uint8_t`       | 256 message IDs |
+| Data     | x | `uint8_t[Size]` | payload data array |
+| Checksum |   | `uint8_t`       | XOR of size, type, and data bytes |
+
+| 0 | 1 | 2 | 3 | 4 | ... | -1 |
+|---|---|---|---|---|-----|----|
+|`$`|`K`| L | H | T | ... | checksum |
+
+## Todo
+
+- [ ] Should I move to a 16b checksum?
+- [ ] Should I use a 16b message id instead of 8b?
+- [x] Remove messages from library. This is just a binary packer and
+      not dependant on the message format other than, it is a `struct`
+- [x] Make a header only library
+- [ ] Generate C and Python messages from a template instead of writing independently
 
 ## Python
 

@@ -2,29 +2,6 @@
 
 # Yivo
 
-**Work in Progress**
-
-# API
-
-| Part     | In Checksum | Type  | Description |
-|----------|-------------|-------|-------------|
-| Header   |   | `uint8_t[2]`  | default `$K` |
-| Size     | x | `uint16_t`    | 0-65,535 bytes |
-| Type     | x | `uint8_t`     | 256 message IDs |
-| Data     | x | `uint8_t[NN]` | payload data array |
-| Checksum |   | `uint8_t`     | XOR of size, type, and data bytes |
-
-| 0 | 1 | 2 | 3 | 4 | ... | -1 |
-|---|---|---|---|---|-----|----|
-|`$`|`K`| N | N | T | ... | checksum |
-
-## Todo
-
-- [ ] Should I move to a 16b checksum?
-- [ ] Should I use a 16b message id instead of 8b?
-- [x] Remove messages from library. This is just a binary packer and
-      not dependant on the message format other than, it is a `struct`
-- [x] Make a header only library
 
 # MIT License
 

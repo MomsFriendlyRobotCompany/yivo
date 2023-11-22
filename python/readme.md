@@ -2,21 +2,6 @@
 
 # Yivo
 
-Trying to standardize the way I access sensors.
-
-Message format:
-
-```
-[ 0, 1, 2, 3,4, ..., -1]
-[h0,h1,LN,HN,T, ..., CS]
-Header: h0, h1
-N = (HN << 8) + LN, max data bytes is 65,536 Bytes
-  HN: High Byte
-  LN: Low Byte
-T: packet type or MsgID
-CS: simple checksum
-```
-
 # MIT License
 
 **Copyright (c) 2020 Mom's Friendly Robot Company**
