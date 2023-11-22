@@ -30,6 +30,9 @@ Trying to standardize the way I access sensors.
       not dependant on the message format other than, it is a `struct`
 - [x] Make a header only library
 - [ ] Generate C and Python messages from a template instead of writing independently
+- [ ] rename `YivoPack_t` to something else like `ypkt_t`
+    - [ ] Add method `bool has_valid_chksum()`? Class could calculate checksum and then compare
+    to its checksum
 
 ## Python
 

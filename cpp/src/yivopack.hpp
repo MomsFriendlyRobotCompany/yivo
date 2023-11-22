@@ -39,8 +39,24 @@ class YivoPack_t: public std::vector<uint8_t> {
   uint8_t msgid() { return (*this)[4]; }
   uint16_t playload_size() { return ((*this)[3] << 8) | (*this)[2];}
   uint8_t checksum() { return (*this)[size()-1]; }
+  void set_checksum() { (*this)[size()-1]; }
   // uint16_t playload_size() { return size() - 6;}
+  uint8_t calc_checksum() {
+    uint8_t cs = 0;
+    uint16_t payload_size = this->payload_size();
+    uint8_t *data = this->data();
+    for (uint16_t i = 0; i < payload_size; ++i) {
+      cs ^= data[2+i];
+    }
+    return cs;
+  }
+  bool has_valide_chksum() {
+    return this->calc_checksum() == this->checksum();
+  }
 };
+
+typedef YivoPack_t ypkt_t; // rename to this?
+
 
 namespace yivo {
 static
