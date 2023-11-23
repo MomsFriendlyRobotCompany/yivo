@@ -22,45 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************/
 #pragma once
-#include <vector>
+
 #include <ostream>
-#include <stdint.h>
+#include <numeric> // std::accumulate
+#include <string>
 
-namespace HIDDEN {
-union int_t {
-  uint16_t b16;
-  uint8_t b8[2];
-};
-} // hidden
-
-
-class YivoPack_t: public std::vector<uint8_t> {
-  public:
-  uint8_t msgid() { return (*this)[4]; }
-  uint16_t playload_size() { return ((*this)[3] << 8) | (*this)[2];}
-  uint8_t checksum() { return (*this)[size()-1]; }
-  void set_checksum() { (*this)[size()-1]; }
-  // uint16_t playload_size() { return size() - 6;}
-  uint8_t calc_checksum() {
-    uint8_t cs = 0;
-    uint16_t payload_size = this->payload_size();
-    uint8_t *data = this->data();
-    for (uint16_t i = 0; i < payload_size; ++i) {
-      cs ^= data[2+i];
-    }
-    return cs;
-  }
-  bool has_valide_chksum() {
-    return this->calc_checksum() == this->checksum();
-  }
-};
-
-typedef YivoPack_t ypkt_t; // rename to this?
-
-
-namespace yivo {
+namespace yv {
 static
-std::string to_string(const YivoPack_t& msg) {
+std::string to_string(const yivopkt_t& msg) {
   std::string s;
   if (msg.size() == 0) return s;
   s += (char)msg[0];
@@ -76,20 +45,6 @@ std::string to_string(const YivoPack_t& msg) {
 }
 
 inline
-std::ostream &operator<<(std::ostream &os, YivoPack_t const &msg) {
-  return os << yivo::to_string(msg);
-}
-
-static
-uint8_t checksum(uint16_t payload_size, uint8_t msgid, uint8_t *data) {
-  uint8_t cs = 0;
-  HIDDEN::int_t v;
-  v.b16 = payload_size;
-  cs    = v.b8[0] ^ v.b8[1];
-  cs ^= msgid;
-  for (int i = 0; i < payload_size; ++i) {
-    cs ^= data[i];
-  }
-
-  return cs;
+std::ostream &operator<<(std::ostream &os, yivopkt_t const &msg) {
+  return os << yv::to_string(msg);
 }

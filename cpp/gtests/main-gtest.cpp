@@ -11,49 +11,58 @@ struct __attribute__((packed)) msg_t {
   uint32_t b; // 4
 }; // 5 bytes
 
-TEST(yivo, YivoPack_t) {
+TEST(yivo, yivopkt_t) {
   Yivo yivo(4);
-  yivo.set_header('x','x');
   msg_t m{105, 1000};
 
-  YivoPack_t msg = yivo.pack(10, reinterpret_cast<uint8_t *>(&m), sizeof(m));
+  yivopkt_t msg;
+  msg.pack(10, reinterpret_cast<uint8_t *>(&m), sizeof(m));
 
   EXPECT_EQ(msg.size(), sizeof(msg_t)+header_size);
-  EXPECT_TRUE(yivo.valid_msg(msg));
-  EXPECT_TRUE(yivo.valid_msg(msg.data(), msg.size()));
-  EXPECT_EQ(msg[0], 'x');
-  EXPECT_EQ(msg[1], 'x');
-  EXPECT_EQ(msg.msgid(), 10);
-  EXPECT_EQ(msg.playload_size(), 5);
+  EXPECT_TRUE(msg.has_valid_checksum());
+  EXPECT_TRUE(msg.valid_msg());
+  EXPECT_EQ(msg[0], '$');
+  EXPECT_EQ(msg[1], 'K');
+  EXPECT_EQ(msg.msg_id(), 10);
+  EXPECT_EQ(msg.payload_size(), 5);
+  EXPECT_EQ(msg.checksum(), msg[10]);
+  EXPECT_EQ(msg.size(), 11);
 }
 
 TEST(yivo, pack_unpack) {
-  Yivo yivo;
   msg_t m{105, 1000};
 
-  YivoPack_t msg = yivo.pack(10, reinterpret_cast<uint8_t *>(&m), sizeof(m));
+  yivopkt_t msg;
+  msg.pack(10, reinterpret_cast<uint8_t *>(&m), sizeof(m));
 
-  msg_t m2 = yivo.unpack<msg_t>(msg);
+  msg_t m2 = msg.unpack<msg_t>();
   EXPECT_EQ(m.a, m2.a);
   EXPECT_EQ(m.b, m2.b);
-
-  msg_t m3 = yivo.unpack<msg_t>(msg.data(), msg.size());
-  EXPECT_EQ(m.a, m3.a);
-  EXPECT_EQ(m.b, m3.b);
 }
 
 TEST(yivo, read) {
   Yivo yivo;
   msg_t m{40, 3100};
 
-  YivoPack_t msg = yivo.pack(20, reinterpret_cast<uint8_t *>(&m), sizeof(msg_t));
+  yivopkt_t msg;
+  msg.pack(20, reinterpret_cast<uint8_t *>(&m), sizeof(msg_t));
   EXPECT_TRUE(msg.size() == sizeof(msg_t)+header_size);
+  // printf("msg id %d\n", (int)msg.msg_id());
 
-  uint8_t id = YIVO_NO_ID;
-  for (const uint8_t& c: msg) id = yivo.parse(c);
+  uint8_t id = 0;
+  for (uint8_t i=0; i<20; ++i) id = yivo.parse(i);
+  EXPECT_EQ(id, 0);
+
+  for (const uint8_t& c: msg) {
+    // printf("c %d\n", (int)c);
+    id = yivo.parse(c);
+  }
+  // printf("id %d\n", (int)id);
   EXPECT_EQ(id, 20);
 
-  msg_t m2 = yivo.unpack<msg_t>();
+  yivopkt_t p;
+  yivo.get_packet(p);
+  msg_t m2 = p.unpack<msg_t>();
   EXPECT_EQ(m.a, m2.a);
   EXPECT_EQ(m.b, m2.b);
 }
