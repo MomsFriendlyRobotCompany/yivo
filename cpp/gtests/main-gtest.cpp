@@ -13,23 +13,23 @@ struct __attribute__((packed)) msg_t {
 
 TEST(yivo, yivopkt_t) {
   Yivo yivo(4);
-  // yivo.set_header('x','x');
   msg_t m{105, 1000};
 
   yivopkt_t msg;
   msg.pack(10, reinterpret_cast<uint8_t *>(&m), sizeof(m));
 
   EXPECT_EQ(msg.size(), sizeof(msg_t)+header_size);
+  EXPECT_TRUE(msg.has_valid_checksum());
   EXPECT_TRUE(msg.valid_msg());
-  // EXPECT_TRUE(yivo.valid_msg(msg.data(), msg.size()));
   EXPECT_EQ(msg[0], '$');
   EXPECT_EQ(msg[1], 'K');
   EXPECT_EQ(msg.msg_id(), 10);
   EXPECT_EQ(msg.payload_size(), 5);
+  EXPECT_EQ(msg.checksum(), msg[10]);
+  EXPECT_EQ(msg.size(), 11);
 }
 
 TEST(yivo, pack_unpack) {
-  Yivo yivo;
   msg_t m{105, 1000};
 
   yivopkt_t msg;
@@ -38,10 +38,6 @@ TEST(yivo, pack_unpack) {
   msg_t m2 = msg.unpack<msg_t>();
   EXPECT_EQ(m.a, m2.a);
   EXPECT_EQ(m.b, m2.b);
-
-  // msg_t m3 = yivo.unpack<msg_t>(msg.data(), msg.size());
-  // EXPECT_EQ(m.a, m3.a);
-  // EXPECT_EQ(m.b, m3.b);
 }
 
 TEST(yivo, read) {

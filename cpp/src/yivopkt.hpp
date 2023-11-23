@@ -25,6 +25,9 @@ SOFTWARE.
 #include <vector>
 #include <cstdint>
 
+
+static constexpr uint8_t YIVO_HEADER_0 = '$';
+static constexpr uint8_t YIVO_HEADER_1 = 'K';
 // constexpr uint16_t YIVO_H0 = 0;
 // constexpr uint16_t YIVO_H1 = 1;
 constexpr uint16_t YIVO_LN = 2;
@@ -37,24 +40,29 @@ class yivopkt_t {
   yivopkt_t() {}
 
   yivopkt_t(const yivopkt_t&) = delete;
-  // yivopkt_t(const yivopkt_t&&) = delete;
+  yivopkt_t(const yivopkt_t&&) = delete;
   yivopkt_t& operator=(const yivopkt_t&) = delete;
 
-  yivopkt_t(const yivopkt_t && y) {
-    resize(y.size());
-    memcpy(buffer, y.data(), y.size());
-  }
+  // yivopkt_t(const yivopkt_t && y) {
+  //   resize(y.size());
+  //   memcpy(buffer, y.data(), y.size());
+  // }
 
   ~yivopkt_t() {
     if (buffer != nullptr) delete[] buffer;
     // printf("del\n");
   }
 
+  /*
+  msgid: message ID (1-255), 0 is not allowed
+  data: buffer containing payload data to be sent
+  sz: size of payload to be sent, yivopkt_t.size() == (payload_size + 6)
+  */
   void pack(uint8_t msgid, uint8_t* data, uint16_t len) {
     if (data == nullptr) return;
     resize(len+6);
-    buffer[0] = '$';
-    buffer[1] = 'K';
+    buffer[0] = YIVO_HEADER_0;
+    buffer[1] = YIVO_HEADER_1;
     buffer[YIVO_LN] = (len & 0x00FF); // lo
     buffer[YIVO_HN] = (len >> 8); // hi
     buffer[YIVO_ID] = msgid;
@@ -83,15 +91,15 @@ class yivopkt_t {
   inline uint8_t msg_id() { return buffer[YIVO_ID]; }
   inline uint16_t payload_size() { return ((uint16_t)buffer[YIVO_HN] << 8) | buffer[YIVO_LN]; }
   inline uint8_t checksum() { return buffer[buffer_size - 1]; }
-  inline bool has_valid_chksum() { return calc_checksum() == checksum(); }
+  inline bool has_valid_checksum() { return calc_checksum() == checksum(); }
 
   bool valid_msg() {
     if (buffer == nullptr) return false;
     if (buffer_size < 6) return false;
-    if ((buffer[0] != '$') || (buffer[1] != 'K')) return false;
+    if ((buffer[0] != YIVO_HEADER_0) || (buffer[1] != YIVO_HEADER_1)) return false;
     if ((buffer_size - 6) != ((buffer[YIVO_HN] << 8) | buffer[YIVO_LN])) return false;
     if (buffer[YIVO_ID] == 0) return false;
-    return has_valid_chksum();
+    return has_valid_checksum();
   }
 
   const uint8_t* begin() const { return buffer; }
@@ -115,52 +123,3 @@ class yivopkt_t {
   uint16_t buffer_size{0};
 
 };
-
-// class yivopkt_t: public std::vector<uint8_t> {
-//   static constexpr uint8_t h0 = '$';
-//   static constexpr uint8_t h1 = 'K';
-
-//   public:
-//   inline
-//   uint8_t msgid() { return (*this)[4]; }
-//   inline
-//   uint16_t payload_size() { return ((*this)[3] << 8) | (*this)[2];}
-//   inline
-//   uint8_t checksum() { return (*this)[size()-1]; }
-//   // void set_checksum() { (*this)[size()-1] = this->calc_checksum(); }
-//   uint8_t calc_checksum() {
-//     uint8_t cs = 0;
-//     uint16_t payload_size = this->payload_size();
-//     uint8_t *data = this->data();
-//     for (uint16_t i = 0; i < payload_size; ++i) {
-//       cs ^= data[2+i];
-//     }
-//     return cs;
-//   }
-
-//   inline
-//   bool has_valid_chksum() {
-//     return this->calc_checksum() == this->checksum();
-//   }
-
-//   bool valid_msg() {
-//     uint8_t *buf = this->data();
-//     if (buf == nullptr) return false;
-
-//     uint16_t size = this->size();
-//     if (size < 6) return false;
-//     uint16_t payload_len = size - 6;
-
-//     if ((buf[0] != h0) || (buf[1] != h1)) return false;
-//     if (payload_len != ((buf[3] << 8) | buf[2])) return false;
-//     uint8_t msgid    = buf[4];
-//     if (msgid == 0) return false;
-//     uint8_t *payload = &buf[5];
-//     // uint8_t cs       = checksum(msgid, payload, payload_len);
-//     // std::cout << int(cs) << " " << int(buf[size-1]) << std::endl;
-//     // if (cs != buf[size-1]) return false;
-//     printf("here\n");
-//     return has_valid_chksum();
-//   }
-// };
-

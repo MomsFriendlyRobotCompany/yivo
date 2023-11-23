@@ -33,8 +33,6 @@ SOFTWARE.
 
 
 class Yivo {
-    static constexpr uint8_t h0 = '$';
-    static constexpr uint8_t h1 = 'K';
 public:
   Yivo(size_t size=64): reserve_size(size) {
     readState = NONE_STATE;
@@ -42,81 +40,11 @@ public:
   }
 
   ~Yivo() {}
-  /*
-  msgid: message ID (1-255), 0 is not allowed
-  data: buffer containing payload data to be sent
-  sz: size of payload to be sent, yivopkt_t.size() == (payload_size + 6)
-  */
-  // yivopkt_t pack(uint8_t msgid, uint8_t *data, uint16_t sz) {
-  //   yivopkt_t ret;
-  //   ret.resize(sz + 6, 0);
-
-  //   // setup header
-  //   ret[0] = h0;
-  //   ret[1] = h1;
-  //   ret[2] = uint8_t(sz & 0xFF); // low byte
-  //   ret[3] = uint8_t(sz >> 8);   // high byte
-  //   ret[4] = msgid;
-
-  //   // copy data
-  //   uint8_t *ptr = ret.data();
-  //   std::memcpy(&ptr[5], data, sz);
-
-  //   // set checksum
-  //   uint8_t cs = checksum(msgid, data, sz);
-  //   ret[5 + sz] = cs;
-  //   this->payload_size = sz;
-
-  //   return ret;
-  // }
-
-  // bool valid_msg(uint8_t *buf, uint16_t size) {
-  //   uint16_t pl_size = size - 6;
-  //   if (buf == nullptr) return false;
-  //   if ((buf[0] != h0) || (buf[1] != h1)) return false;
-  //   uint16_t payload_len     = (buf[3] << 8) | buf[2];
-
-  //   // std::cout << char(buf[0]) << " " << char(buf[1]) << std::endl;
-  //   // std::cout << int(len) << " " << int(size) << std::endl;
-
-  //   if (payload_len != pl_size) return false;
-  //   uint8_t msgid    = buf[4];
-  //   uint8_t *payload = &buf[5];
-  //   uint8_t cs       = checksum(payload_len, msgid, payload);
-  //   // std::cout << int(cs) << " " << int(buf[size-1]) << std::endl;
-  //   if (cs != buf[size-1]) return false;
-  //   return true;
-  // }
-
-  // template <typename T>
-  // T unpack(uint8_t* b, size_t size) {
-  //   T val{0};
-  //   if (b == nullptr) return val;
-  //   // if (!valid_msg(b, size)) return val;
-  //   uint16_t len = (b[3] << 8) | b[2];
-  //   memcpy((void *)(&val), (void *)(&b[5]), len);
-  //   return val;
-  // }
-
-  // template <typename T>
-  // inline
-  // T unpack(yivopkt_t& msg) {
-  //   return unpack<T>(msg.data(), msg.size());
-  // }
-
-  // template <typename T>
-  // inline
-  // T unpack() {
-  //   // return unpack<T>(buffer.data(), payload_size+6);
-  //   return unpack<T>(buffer.data(), buffer.size());
-  // }
 
   void get_packet(yivopkt_t& p) {
-    // yivopkt_t p;
     p.fill(buffer.data(), buffer.size());
-    // return std::move(p);
-    // return p;
   }
+
   /*
   Read in one byte at a time, yivo keeps track of the state until it
   finds a good message.
@@ -126,7 +54,7 @@ public:
     uint8_t ret = 0;
     switch (readState) {
     case NONE_STATE:
-      if (c == this->h0) {
+      if (c == YIVO_HEADER_0) {
         reset_buffer();
         readState = H0_STATE;
         buffer.push_back(c); // h0
@@ -134,7 +62,7 @@ public:
       else readState = NONE_STATE; // this state will reset
       break;
     case H0_STATE:
-      if (c == this->h1) {
+      if (c == YIVO_HEADER_1) {
         readState = H1_STATE;
         buffer.push_back(c); // h1
       }
@@ -165,7 +93,6 @@ public:
     case CS_STATE:
       buffer.push_back(c); // checksum
       // check if cs is correct
-      // uint8_t cs = checksum(buffer_msgid, &buffer[5], payload_size);
       uint8_t cs = 0;
       for (size_t i=2; i < buffer.size()-1; ++i) cs ^= buffer[i];
       if (cs == c) {
@@ -180,18 +107,12 @@ public:
     return ret;
   }
 
-  // [[deprecated]]
-  // uint8_t read(uint8_t c) {
-  //   return parse(c);
-  // }
-
 protected:
-  uint16_t payload_size; // payload size, doesn't count header/cs (+6B more)
-  // char h0, h1;           // header bytes
-  const size_t reserve_size;
+  uint16_t payload_size; // payload size doesn't count header/cs (+6B more)
+  const size_t reserve_size; // to minimize vector resizes, get a good chunk initially
   uint8_t readState;
   uint8_t buffer_msgid;
-  std::vector<uint8_t> buffer;
+  std::vector<uint8_t> buffer; // used for reading in data
 
   void reset_buffer() {
     buffer.clear();
