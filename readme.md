@@ -63,6 +63,16 @@ err, msg = yivo.unpack() # err > 0 if failure to unpack
 
 ## C++
 
+- `yivopkt_t`: packs/unpacks (or encodes/decodes) c `structs` for transmission
+    - `uint8_t* data()`: get point to buffer
+    - `uint16_t size()`: get size of buffer
+    - `uint8_t msg_id()`: get message id
+    - `void pack(id,*data,size)`: encode a `struct` to binary
+    - `T unpack<T>()`: decode a binary message to a `struct`
+- `Yivo`: basically a state machine for reading in serial data and determining when you have a message to read
+    - `uint8_t parse(c)`: read in a byte at a time and return an ID or 0
+    - `void get_packet(pkt)`: copy binary message to `yivopkt_t`
+
 ```cpp
 #include <yivo.hpp>
 
@@ -75,13 +85,19 @@ Yivo yivo;
 yivopkt_t pkt;
 pkt.pack(1, A{1}, sizeof(A));
 
+serial_send(pkt.data(), pkt.size()); // somehow send a message
+
 uint8_t id = 0;
 while (id == 0) {
     uint8_t b = serial_read(); // get a byte from somewhere
     id = yivo.parse(b);
 }
-if (id == 1) A a = yivo.unpack<A>();
-else if (id == 2) B b = yivo.unpack<B>();
+yivopkt_t rep;
+yivo.get_packet(rep);
+
+// then decode the received message
+if (id == 1) A a = rep.unpack<A>();
+else if (id == 2) B b = rep.unpack<B>();
 ```
 
 # MIT License
