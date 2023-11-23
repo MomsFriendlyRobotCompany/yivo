@@ -2,6 +2,7 @@
 #include <stdint.h>
 // #include <array>
 #include <vector>
+#include <cstring>
 // #include <iterator>
 
 using namespace std;
