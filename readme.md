@@ -72,7 +72,8 @@ struct B {int b;}; // id 2
 
 Yivo yivo;
 
-YivoPack_t pkt = yivo.pack(1, A{1}, sizeof(A));
+yivopkt_t pkt;
+pkt.pack(1, A{1}, sizeof(A));
 
 uint8_t id = 0;
 while (id == 0) {

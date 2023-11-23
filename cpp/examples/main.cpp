@@ -12,12 +12,13 @@ struct Sensor {
 
 int main() {
   Yivo yivo;
+  yivopkt_t ret;
   Sensor sen;
   sen.f[0] = 1.1f;
   sen.f[1] = 20.02f;
   sen.f[2] = 300.003f;
 
-  YivoPack_t ret = yivo.pack(
+  ret.pack(
     10,
     reinterpret_cast<uint8_t *>(&sen),
     sizeof(Sensor));
@@ -30,9 +31,10 @@ int main() {
 
   // double check we get entire message
   if (id == 0) cout << "FAIL read" << endl;
-
+  yivopkt_t p;
+  yivo.get_packet(p);
   // turn bytes into message struct
-  Sensor s2 = yivo.unpack<Sensor>();
+  Sensor s2 = p.unpack<Sensor>();
 
   if (sen.f[0] == s2.f[0] && sen.f[1] == s2.f[1] && sen.f[2] == s2.f[2]) {
     // cout << "id: " << (int)yivo.get_buffer_msgid() << endl;

@@ -1,6 +1,8 @@
 list(APPEND apps
     main
     save
+    crc
+    array_alt
 )
 
 # message(STATUS "yivo::Examples ----------------------")
