@@ -9,7 +9,7 @@ from .packet import Yivo
 from .packet import Errors
 from .packet import checksum
 from .packet import num_fields
-# from .packet import make_Struct
+# from .packet import make_Struct # done internally now
 from .packet import MsgInfo
 
 __copyright__ = 'Copyright (c) 2020 Kevin Walchko'

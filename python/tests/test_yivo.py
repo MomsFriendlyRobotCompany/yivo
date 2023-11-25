@@ -30,7 +30,7 @@ def test_pack_n_unpack():
 
         err, data = yivo.unpack(msg)
         if err > 0:
-            assert False, print(err, this_id, data)
+            assert False, print(err, data)
             continue
 
         if msgid == 1:
@@ -41,9 +41,9 @@ def test_pack_n_unpack():
         msg = [chr(x).encode("latin1") for x in msg]
         for i, c in enumerate(msg):
             mid = yivo.parse(c)
-            # print(i, ok, c, ord(c))
+            print(i, mid, c, ord(c))
 
-        assert mid == msgid, print("invalid id")
+        assert mid == msgid, print("invalid id", mid,"!=",msgid)
 
         err, omsg = yivo.unpack()
 

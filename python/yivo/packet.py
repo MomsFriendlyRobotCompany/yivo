@@ -8,6 +8,7 @@ from enum import IntEnum, unique # need for Errors
 from .parser import YivoParser
 from collections import namedtuple
 from collections import UserDict
+from colorama import Fore
 
 def make_Struct(payload):
     """
@@ -34,9 +35,9 @@ class MsgInfo(UserDict):
         if isinstance(value, tuple) == False:
             raise Exception("value must be tuple")
         if isinstance(value[0], str) == False:
-            raise Exception("value must contain a string and class name")
+            raise Exception("value must contain a string and class name", value[0])
         if isinstance(value[1], type) == False:
-            raise Exception("value must contain a string and class name")
+            raise Exception("value must contain a string and class name:", value[1])
 
         fmt = Struct(f"<2cHB{value[0]}B")
         cls = value[1]
@@ -54,19 +55,37 @@ class Errors(IntEnum):
     INVALID_MSGID    = 16
     NO_DATA          = 32
 
+    @staticmethod
+    def str(val):
+        if (val == Errors.NONE): return "NONE"
+        elif (val == Errors.INVALID_HEADER): return "INVALID_HEADER"
+        elif (val == Errors.INVALID_LENGTH): return "INVALID_LENGTH"
+        elif (val == Errors.INVALID_CHECKSUM): return "INVALID_CHECKSUM"
+        elif (val == Errors.INVALID_COMMAND): return "INVALID_COMMAND"
+        elif (val == Errors.INVALID_MSGID): return "INVALID_MSGID"
+        elif (val == Errors.NO_DATA): return "NO_DATA"
+        return "UNKNOWN"
 
 
-def checksum(size,msgid,msg):
-    if size == 0 and msg == None:
-        return msgid
 
-    # a,b = struct.pack('H', size)
-    a = 0x00FF & size
-    b = size >> 8
+# def checksum(size,msgid,msg):
+#     if size == 0 and msg == None:
+#         return msgid
 
-    cs = (a ^ b)^msgid
-    # msg = [cs] + msg
-    # cs = reduce(xor, msg)
+#     # a,b = struct.pack('H', size)
+#     a = 0x00FF & size
+#     b = size >> 8
+
+#     cs = (a ^ b)^msgid
+#     # msg = [cs] + msg
+#     # cs = reduce(xor, msg)
+#     for m in msg:
+#         cs ^= m
+#     # print("cs", cs, cs.to_bytes(1,'little'))
+#     return cs
+
+def checksum(msg):
+    cs = 0
     for m in msg:
         cs ^= m
     # print("cs", cs, cs.to_bytes(1,'little'))
@@ -126,11 +145,29 @@ class Yivo:
         fmt, _ = self.msgInfo[msgID]
         sz = fmt.size - 6
         msg = fmt.pack(*self.header, sz, msgID, *data, 0)
-        cs = checksum(sz,msgID,msg[5:-1])
+        # cs = checksum(sz,msgID,msg[5:-1])
+        cs = checksum(msg[2:-1])
         msg = msg[:-1] + self.pack_cs.pack(cs) #cs.to_bytes(1,'little')
         return msg
 
     def unpack(self, msg=None):
+        if msg is None:
+            return self.__unpack()
+        self.data = msg
+        return self.__unpack()
+
+    def dump(self, msg):
+        size, msgid, payload, cs = chunk(msg)
+        payload = [x for x in payload]
+        print(f"{Fore.CYAN}==============================================")
+        print(f"Msg: {msg}")
+        print(f"Size: {size}   payload size: {len(payload)}")
+        print(f"msgid: {msgid}")
+        print(f"payload: {payload}")
+        print(f"checksum: {cs}   calc: {checksum(msg[2:-1])}")
+        print(f"==================================================={Fore.RESET}")
+
+    def __unpack(self):
         """
         Unpacks a binary yivo packet
 
@@ -138,10 +175,11 @@ class Yivo:
             Errors
             Message
         """
-        clear = False # doesn't cleanup if failure
-        if msg is None:
-            msg = self.data
-            clear = True
+        # clear = False # doesn't cleanup if failure
+        # if msg is None:
+        #     msg = self.data
+        #     clear = True
+        msg = self.data
 
         size, msgid, payload, cs = chunk(msg)
 
@@ -158,13 +196,15 @@ class Yivo:
             # print(f"invalid id: {msgid}")
             return Errors.INVALID_MSGID, None
 
-        if (size != 0) and (size != len(payload)):
+        if (size == 0) or (size != len(payload)):
             # print(len(payload),"!=", size)
             return Errors.INVALID_LENGTH, None
         # print(size, len(payload))
 
-        if checksum(size, msgid, payload) != cs:
+        # if checksum(size, msgid, payload) != cs:
+        if checksum(msg[2:-1]) != cs:
             # print("checksum failure", cs, "!=", checksum(size, msgid, payload))
+            self.dump(msg)
             return Errors.INVALID_CHECKSUM, None
         # print(cs, checksum(size, msgid, payload))
 
@@ -182,8 +222,8 @@ class Yivo:
             val = obj(*info[4:-1])
         else:
             val = REQUEST(msgid)
-        if clear:
-            self.data = None
+        # if clear:
+        #     self.data = None
 
         return Errors.NONE, val
 

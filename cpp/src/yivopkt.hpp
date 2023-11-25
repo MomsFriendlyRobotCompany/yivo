@@ -28,12 +28,13 @@ SOFTWARE.
 
 static constexpr uint8_t YIVO_HEADER_0 = '$';
 static constexpr uint8_t YIVO_HEADER_1 = 'K';
-// constexpr uint16_t YIVO_H0 = 0;
-// constexpr uint16_t YIVO_H1 = 1;
+constexpr uint16_t YIVO_H0 = 0;
+constexpr uint16_t YIVO_H1 = 1;
 constexpr uint16_t YIVO_LN = 2;
 constexpr uint16_t YIVO_HN = 3;
 constexpr uint16_t YIVO_ID = 4;
 constexpr uint16_t YIVO_PL = 5;
+constexpr uint16_t YIVO_OVERHEAD = 6; // h0,h1,LN,HN,ID, ..., CS
 
 class yivopkt_t {
   public:
@@ -53,6 +54,12 @@ class yivopkt_t {
     // printf("del\n");
   }
 
+  void clear() {
+    if (buffer != nullptr) delete[] buffer;
+    buffer = nullptr;
+    buffer_size = 0;
+  }
+
   /*
   msgid: message ID (1-255), 0 is not allowed
   data: buffer containing payload data to be sent
@@ -60,12 +67,14 @@ class yivopkt_t {
   */
   void pack(uint8_t msgid, uint8_t* data, uint16_t len) {
     if (data == nullptr) return;
-    resize(len+6);
+    resize(len+YIVO_OVERHEAD);
+
     buffer[0] = YIVO_HEADER_0;
     buffer[1] = YIVO_HEADER_1;
-    buffer[YIVO_LN] = (len & 0x00FF); // lo
-    buffer[YIVO_HN] = (len >> 8); // hi
+    buffer[YIVO_LN] = (uint8_t)(len & 0x00FF); // lo
+    buffer[YIVO_HN] = (uint8_t)(len >> 8); // hi
     buffer[YIVO_ID] = msgid;
+
     memcpy(&buffer[YIVO_PL], data, len);
     buffer[len+5] = calc_checksum();
   }
@@ -77,11 +86,12 @@ class yivopkt_t {
   }
 
   template <typename T>
+  inline
   T unpack() {
     T val{0};
     if (buffer == nullptr || buffer_size < 6) return val;
     // uint16_t len = buffer_size - 6; //(buffer[YIVO_HN] << 8) | buffer[YIVO_LN];
-    memcpy((void *)(&val), &buffer[YIVO_PL], buffer_size - 6);
+    memcpy((uint8_t *)(&val), &buffer[YIVO_PL], buffer_size - 6);
     return val;
   }
 
@@ -114,12 +124,13 @@ class yivopkt_t {
   }
 
   uint8_t calc_checksum() {
+    // XOR all bytes EXCEPT header and checksum
     uint8_t cs = 0;
     for (uint16_t i = 2; i < (buffer_size - 1); ++i) cs ^= buffer[i];
     return cs;
   }
 
   uint8_t* buffer=nullptr;
-  uint16_t buffer_size{0};
+  uint16_t buffer_size{0}; // payload_size + 6
 
 };

@@ -22,6 +22,21 @@ Trying to standardize the way I access sensors.
 |---|---|---|---|---|-----|----|
 |`$`|`K`| L | H | T | ... | checksum |
 
+## Byte Conversions
+
+| Type     | Bytes | Format | Python | C/C++ |
+|----------|---|-----|-------|---------------|
+| `uint8`  | 1 | `B` | `int` | `uint8_t`
+| `uint16` | 2 | `H` | `int` | `uint16_t`
+| `uint32` | 4 | `I` | `int` | `uint32_t`
+| `uint64` | 8 | `Q` | `int` | `uint64_t`
+| `int8`   | 1 | `b` | `int` | `int8_t`
+| `int16`  | 2 | `h` | `int` | `int16_t`
+| `int32`  | 4 | `i` | `int` | `int32_t`
+| `int64`  | 8 | `q` | `int` | `int64_t`
+| `float`  | 4 | `f` | `float` | `float`
+| `double` | 8 | `d` | `float` | `double`
+
 ## Todo
 
 - [ ] Should I move to a 16b checksum?
