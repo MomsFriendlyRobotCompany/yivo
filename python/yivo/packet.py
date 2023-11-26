@@ -64,7 +64,7 @@ class Errors(IntEnum):
         elif (val == Errors.INVALID_COMMAND): return "INVALID_COMMAND"
         elif (val == Errors.INVALID_MSGID): return "INVALID_MSGID"
         elif (val == Errors.NO_DATA): return "NO_DATA"
-        return "UNKNOWN"
+        return f"UNKNOWN({val})"
 
 
 
@@ -89,7 +89,7 @@ def checksum(msg):
     for m in msg:
         cs ^= m
     # print("cs", cs, cs.to_bytes(1,'little'))
-    return cs
+    return cs & 0xFF
 
 def chunk(msg):
     size = msg[2] + (msg[3] << 8) # messages sent little endian
@@ -150,22 +150,24 @@ class Yivo:
         msg = msg[:-1] + self.pack_cs.pack(cs) #cs.to_bytes(1,'little')
         return msg
 
+    def dump(self, msg):
+        if msg is None:
+            return
+        size, msgid, payload, cs = chunk(msg)
+        payload = [x for x in payload]
+        print(f"{Fore.CYAN}==============================================")
+        print(f"{Fore.GREEN}Msg: {msg}{Fore.CYAN}")
+        print(f"Size: {size}   payload actual size: {len(payload)}")
+        print(f"msgid: {msgid}")
+        print(f"payload: {payload}")
+        print(f"checksum: {cs}   calc checksum: {checksum(msg[2:-1])}")
+        print(f"==================================================={Fore.RESET}")
+
     def unpack(self, msg=None):
         if msg is None:
             return self.__unpack()
         self.data = msg
         return self.__unpack()
-
-    def dump(self, msg):
-        size, msgid, payload, cs = chunk(msg)
-        payload = [x for x in payload]
-        print(f"{Fore.CYAN}==============================================")
-        print(f"Msg: {msg}")
-        print(f"Size: {size}   payload size: {len(payload)}")
-        print(f"msgid: {msgid}")
-        print(f"payload: {payload}")
-        print(f"checksum: {cs}   calc: {checksum(msg[2:-1])}")
-        print(f"==================================================={Fore.RESET}")
 
     def __unpack(self):
         """
@@ -175,57 +177,58 @@ class Yivo:
             Errors
             Message
         """
-        # clear = False # doesn't cleanup if failure
-        # if msg is None:
-        #     msg = self.data
-        #     clear = True
         msg = self.data
+        if msg is None:
+            return Errors.NO_DATA, None
 
-        size, msgid, payload, cs = chunk(msg)
-
-        # print(f">> size: {size}\n id: {msgid}\n pl: {payload}\n cs: {cs}")
-
-        val = None
-        a = ord(self.header[0])
-        b = ord(self.header[1])
-        if (msg[0] != a) or (msg[1] != b):
-            # print(msg[:2], self.header)
-            return Errors.INVALID_HEADER, None
-
-        if msgid not in self.valid_msgids:
-            # print(f"invalid id: {msgid}")
-            return Errors.INVALID_MSGID, None
-
-        if (size == 0) or (size != len(payload)):
-            # print(len(payload),"!=", size)
-            return Errors.INVALID_LENGTH, None
-        # print(size, len(payload))
-
-        # if checksum(size, msgid, payload) != cs:
-        if checksum(msg[2:-1]) != cs:
-            # print("checksum failure", cs, "!=", checksum(size, msgid, payload))
+        err = self.valid_msg(msg)
+        if err != Errors.NONE:
             self.dump(msg)
-            return Errors.INVALID_CHECKSUM, None
-        # print(cs, checksum(size, msgid, payload))
+            return err, None
 
+        msgid = msg[4]
         try:
             fmt, obj = self.msgInfo[msgid]
         except KeyError:
             return Errors.INVALID_MSGID, None
 
-        if size > 0:
-            info = fmt.unpack(msg)
-            # print("info", info)
-            # print(type(obj))
-            # if isinstance(tuple, obj): val = tuple(info[4:-1])
-            # else: val = obj(*info[4:-1])
-            val = obj(*info[4:-1])
-        else:
-            val = REQUEST(msgid)
-        # if clear:
-        #     self.data = None
+        info = fmt.unpack(msg)
+        # print(f"{Fore.YELLOW}{info}{Fore.RESET}")
+        val = obj(*info[4:-1])
 
         return Errors.NONE, val
+
+    def valid_msg(self, msg):
+        size, msgid, payload, cs = chunk(msg)
+
+        a = ord(self.header[0])
+        b = ord(self.header[1])
+        if (msg[0] != a) or (msg[1] != b):
+            # print(msg[:2], self.header)
+            return Errors.INVALID_HEADER
+
+        if msgid not in self.valid_msgids:
+            # print(f"invalid id: {msgid}")
+            return Errors.INVALID_MSGID
+
+        if (size == 0) or (size != len(payload)):
+            # print(len(payload),"!=", size)
+            return Errors.INVALID_LENGTH
+        # print(size, len(payload))
+
+        # if checksum(size, msgid, payload) != cs:
+        if checksum(msg[2:-1]) != cs:
+            # print("checksum failure", cs, "!=", checksum(size, msgid, payload))
+            # self.dump(msg)
+            return Errors.INVALID_CHECKSUM
+        # print(cs, checksum(size, msgid, payload))
+
+        try:
+            fmt, obj = self.msgInfo[msgid]
+        except KeyError:
+            return Errors.INVALID_MSGID
+
+        return Errors.NONE
 
     def parse(self, c):
         if self.parser.parse(c):

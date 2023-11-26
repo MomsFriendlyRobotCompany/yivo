@@ -129,9 +129,9 @@ class yivopkt_t {
 
   uint8_t calc_checksum() {
     // XOR all bytes EXCEPT header and checksum
-    uint8_t cs = 0;
+    uint32_t cs = 0;
     for (uint16_t i = 2; i < (buffer_size - 1); ++i) cs ^= buffer[i];
-    return cs;
+    return (uint8_t)(cs & 0x000000FF);
   }
 
   uint8_t* buffer=nullptr;

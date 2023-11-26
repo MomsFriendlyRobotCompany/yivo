@@ -36,7 +36,7 @@ TEST(yivo, pack_unpack) {
   msg_t m{105, 1000};
 
   yivopkt_t msg;
-  msg.pack(10, reinterpret_cast<uint8_t *>(&m), sizeof(m));
+  msg.pack(10, (uint8_t*)&m, sizeof(m));
   EXPECT_TRUE(msg.valid_msg());
 
   msg_t m2 = msg.unpack<msg_t>();
@@ -72,4 +72,18 @@ TEST(yivo, read) {
   msg_t m2 = p.unpack<msg_t>();
   EXPECT_EQ(m.a, m2.a);
   EXPECT_EQ(m.b, m2.b);
+}
+
+TEST(yivo, bad_packets) {
+  uint8_t a[]{'X','X',5,0,20,1,2,33};
+  yivopkt_t p;
+  p.fill(a, sizeof(a));
+  EXPECT_FALSE(p.valid_msg());
+
+  p.clear();
+  EXPECT_EQ(p.size(), 0);
+
+  uint8_t b[]{'$','K',5,0,20,1,2,33}; // correct checksum = 18
+  p.fill(b, sizeof(b));
+  EXPECT_FALSE(p.has_valid_checksum());
 }

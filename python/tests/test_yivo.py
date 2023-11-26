@@ -9,10 +9,6 @@ def test_pack_n_unpack():
     A = namedtuple("A","x y")
     B = namedtuple("B", "x y z t")
 
-    # msgdb = {
-    #     1: (make_Struct("2f"), A), # 2 floats
-    #     2: (make_Struct("4f"), B)  # 4 floats
-    # }
     msgdb = MsgInfo()
     msgdb[1] = ("2f", A) # 2 floats
     msgdb[2] = ("4f", B) # 4 floats

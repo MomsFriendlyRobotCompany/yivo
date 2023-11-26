@@ -39,8 +39,8 @@ Trying to standardize the way I access sensors.
 
 ## Todo
 
-- [ ] Should I move to a 16b checksum?
-- [ ] Should I use a 16b message id instead of 8b?
+- [ ] Make C and python functions/objects match ... they are different right now
+- [ ] Should I move to a readl CRC-8 checksum?
 - [x] Remove messages from library. This is just a binary packer and
       not dependant on the message format other than, it is a `struct`
 - [x] c++: Make a header only library
