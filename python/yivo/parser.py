@@ -58,25 +58,25 @@ class YivoParser:
             self.reset()
             return False
         elif self.readState == ReadState_t.H1_STATE:
-            c = ord(c)
+            # c = ord(c)
             self.buff.append(c) # s0
             self.readState = ReadState_t.S0_STATE
-            self.payload_size = c
+            self.payload_size = ord(c)
             return False
             # print("s0")
         elif self.readState == ReadState_t.S0_STATE:
-            c = ord(c)
+            # c = ord(c)
             self.buff.append(c) # s1
-            self.payload_size |= c << 8
+            self.payload_size |= ord(c) << 8
             # print(f">> payload size:", self.payload_size)
             self.readState = ReadState_t.S1_STATE
             return False
             # printp("s1")
             # print(f"size: {self.payload_size}")
         elif self.readState == ReadState_t.S1_STATE:
-            c = ord(c)
+            # c = ord(c)
             self.buff.append(c) # type
-            self.buffer_msgid = c
+            self.buffer_msgid = ord(c)
             self.readState = ReadState_t.TYPE_STATE
             return False
             # printp("t")
@@ -93,7 +93,7 @@ class YivoParser:
                 self.readState = ReadState_t.CS_STATE
             return False
         elif self.readState == ReadState_t.CS_STATE:
-            c = ord(c)
+            # c = ord(c)
             self.buff.append(c) # cs
             # cs = self.checksum(self.buff[2:-1])
             self.readState = ReadState_t.NONE_STATE
