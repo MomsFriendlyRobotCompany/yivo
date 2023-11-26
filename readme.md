@@ -5,6 +5,11 @@
 [![Cpp](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/cpp.yaml/badge.svg)](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/cpp.yaml)
 [![Python](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/python.yaml/badge.svg)](https://github.com/MomsFriendlyRobotCompany/yivo/actions/workflows/python.yaml)
 ![GitHub](https://img.shields.io/github/license/MomsFriendlyRobotCompany/yivo)
+[![Latest Version](https://img.shields.io/pypi/v/yivo.svg)](https://pypi.python.org/pypi/yivo/)
+[![image](https://img.shields.io/pypi/pyversions/yivo.svg)](https://pypi.python.org/pypi/yivo)
+[![image](https://img.shields.io/pypi/format/yivo.svg)](https://pypi.python.org/pypi/yivo)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/yivo?color=aqua)
+
 
 Trying to standardize the way I access sensors.
 
