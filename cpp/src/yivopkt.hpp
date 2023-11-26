@@ -65,7 +65,7 @@ class yivopkt_t {
   data: buffer containing payload data to be sent
   sz: size of payload to be sent, yivopkt_t.size() == (payload_size + 6)
   */
-  void pack(uint8_t msgid, uint8_t* data, uint16_t len) {
+  void pack(const uint8_t msgid, uint8_t* data, const uint16_t len) {
     if (data == nullptr) return;
     resize(len+YIVO_OVERHEAD);
 
@@ -79,7 +79,11 @@ class yivopkt_t {
     buffer[len+5] = calc_checksum();
   }
 
-  void fill(uint8_t* data, uint16_t len) {
+  /*
+  This is like a 'copy' for the whole yivo packet from header0
+  to checksum.
+  */
+  void fill(uint8_t* data, const uint16_t len) {
     if (data == nullptr) return;
     resize(len);
     memcpy(buffer, data, len);

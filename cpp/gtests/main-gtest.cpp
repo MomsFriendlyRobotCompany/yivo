@@ -37,6 +37,7 @@ TEST(yivo, pack_unpack) {
 
   yivopkt_t msg;
   msg.pack(10, reinterpret_cast<uint8_t *>(&m), sizeof(m));
+  EXPECT_TRUE(msg.valid_msg());
 
   msg_t m2 = msg.unpack<msg_t>();
   EXPECT_EQ(m.a, m2.a);
@@ -48,14 +49,15 @@ TEST(yivo, read) {
   msg_t m{40, 3100};
 
   yivopkt_t msg;
-  msg.pack(20, reinterpret_cast<uint8_t *>(&m), sizeof(msg_t));
+  msg.pack(20, (uint8_t*)&m, sizeof(msg_t));
   EXPECT_EQ(msg.size(), sizeof(msg_t) + YIVO_OVERHEAD);
+  EXPECT_TRUE(msg.valid_msg());
   EXPECT_EQ((msg[3]<<8)|msg[2], sizeof(msg_t));
   // printf("msg id %d\n", (int)msg.msg_id());
 
   // Read in junk -----
   uint8_t id = 0;
-  for (uint8_t i=0; i<20; ++i) id = yivo.parse(i);
+  for (uint8_t i=0; i<250; ++i) id = yivo.parse(i);
   EXPECT_EQ(id, 0);
 
   for (const uint8_t& c: msg) {

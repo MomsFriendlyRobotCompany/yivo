@@ -13,8 +13,8 @@ Trying to standardize the way I access sensors.
 | Part     | In Checksum | Type  | Description |
 |----------|-------------|-------|-------------|
 | Header   |   | `uint8_t[2]`    | default `$K` |
-| Size     | x | `uint16_t`      | 0-65,535 bytes [L,H] => `(H << 8) | L` |
-| Type     | x | `uint8_t`       | 256 message IDs |
+| Size     | x | `uint16_t`      | 0-65,535 bytes, stored as [L,H] => `(H << 8) | L` |
+| Type     | x | `uint8_t`       | 255 message IDs, 0 is not allowed as an ID |
 | Data     | x | `uint8_t[Size]` | payload data array |
 | Checksum |   | `uint8_t`       | XOR of size, type, and data bytes |
 
@@ -25,15 +25,15 @@ Trying to standardize the way I access sensors.
 ## Byte Conversions
 
 | Type     | Bytes | Format | Python | C/C++ |
-|----------|---|-----|-------|---------------|
-| `uint8`  | 1 | `B` | `int` | `uint8_t`
-| `uint16` | 2 | `H` | `int` | `uint16_t`
-| `uint32` | 4 | `I` | `int` | `uint32_t`
-| `uint64` | 8 | `Q` | `int` | `uint64_t`
-| `int8`   | 1 | `b` | `int` | `int8_t`
-| `int16`  | 2 | `h` | `int` | `int16_t`
-| `int32`  | 4 | `i` | `int` | `int32_t`
-| `int64`  | 8 | `q` | `int` | `int64_t`
+|----------|---|-----|---------|---------------|
+| `uint8`  | 1 | `B` | `int`   | `uint8_t`
+| `uint16` | 2 | `H` | `int`   | `uint16_t`
+| `uint32` | 4 | `I` | `int`   | `uint32_t`
+| `uint64` | 8 | `Q` | `int`   | `uint64_t`
+| `int8`   | 1 | `b` | `int`   | `int8_t`
+| `int16`  | 2 | `h` | `int`   | `int16_t`
+| `int32`  | 4 | `i` | `int`   | `int32_t`
+| `int64`  | 8 | `q` | `int`   | `int64_t`
 | `float`  | 4 | `f` | `float` | `float`
 | `double` | 8 | `d` | `float` | `double`
 
