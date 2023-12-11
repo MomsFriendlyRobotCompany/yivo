@@ -1,0 +1,26 @@
+float w
+float x
+float y
+float z
+
+fru fru
+
+<c
+float magnitude() {
+  return sqrtf(w*w + x*x + y*y + z*z);
+}
+
+vec_t normalize() {
+  float mag = magnitude();
+  return quat_t{w/mag,x/mag,y/mag,z/mag};
+}
+c>
+
+<p
+def magnitude(self):
+    return sqrt(self.x*self.x + self.y*self.y + self.z*self.z)
+
+def normalize(self):
+    mag = self.magnitude()
+    return quat_t(self.w/mag, self.x/mag, self.y/mag, self.z/mag)
+p>

@@ -78,6 +78,17 @@ jerry=32
 enum>
 ```
 
+```json
+{
+    "namespace": "foobar",
+    "license": "MIT Kevin Walchko (c) 2023",
+    "output": "test",
+    "1": "messages/vec.yivo",
+    "2": "messages/quat.yivo",
+    "4": "messages/imu.yivo",
+    "5": "messages/cal.yivo"
+}
+```
 
 # MIT License
 

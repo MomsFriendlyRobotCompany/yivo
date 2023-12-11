@@ -8,19 +8,17 @@ from collections import namedtuple
 import logging
 from colorama import Fore
 import sys
+import json
 
+from .format import create_python, create_c_header
+from .format import env, write_file
+from .format import var_types, VarInfo
+from .msg_parts import MsgParts
 
 # logging: DEBUG ERROR INFO
 logging.basicConfig(format='>> %(message)s', level=logging.ERROR)
 logger = logging.getLogger(__name__)
-tmp_dir = pathlib.Path(__file__).resolve().parent/"templates"
-env = Environment(loader=FileSystemLoader(tmp_dir))
 
-# Add:
-# py - python name
-# fmt - pack/unpack
-# complex - for user defined types, more involved
-VarInfo = namedtuple("VarInfo","c py size fmt complex")
 Field = namedtuple("Field", "type array_size var comment")
 
 class Enums:
@@ -28,87 +26,6 @@ class Enums:
         self.name = name
         self.size = size
         self.values = []
-
-var_types = {
-    "uint8": VarInfo("uint8_t", "int",1, "B", False),
-    "uint16": VarInfo("uint16_t", "int",2, "H", False),
-    "uint32": VarInfo("uint32_t", "int", 4, "I", False),
-    "uint64": VarInfo("uint64_t", "int",8, "Q", False),
-    "int8": VarInfo("int8_t", "int",1, "b", False),
-    "int16": VarInfo("int16_t", "int", 2, "h", False),
-    "int32": VarInfo("int32_t", "int", 4, "i", False),
-    "int64": VarInfo("int64_t", "int", 8, "q", False),
-    "float": VarInfo("float", "float", 4, "f", False),
-    "double": VarInfo("double", "float", 8, "d", False)
-}
-
-class MsgParts:
-    """
-    Breaks a message format appart and stores the results so it can be
-    converted into other languages. Supported languages:
-    - python
-    - C/C++
-    """
-    def __init__(self):
-        self.comments = []  # comments in body of message prototype
-        self.fields = []    # variables in message
-        self.includes = []  # included message headers/modules
-        self.c_funcs = []   # custom C functions
-        self.py_funcs = []  # custom Python functions
-        self.enums = []     # enums
-        self.msg_size = 0   # size of message in bytes
-        self.file = None    # filename for naming the message
-        self.id = 0         # message id number
-        self.namespace = None # cpp namespace
-
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self):
-        ret = f"{Fore.YELLOW}------------------------------\n"
-        ret += f"File: {self.file}\n"
-        if self.namespace is not None:
-            ret += f"Namespace: {self.namespace}\n"
-        ret += f"------------------------------\n{Fore.RESET}"
-        ret += f"{Fore.CYAN}Comments:\n{Fore.RESET}"
-        ret += f"{Fore.GREEN}"
-        for c in self.comments:
-            ret += f" {c}\n"
-        ret += f"{Fore.RESET}"
-
-        ret += f"\n{Fore.CYAN}Fields:\n{Fore.RESET}"
-        for f in self.fields:
-            ret += f" {f}\n"
-
-        ret += f"\n{Fore.CYAN}Python Functions:\n{Fore.RESET}"
-        for f in self.py_funcs:
-            ret += f" {f}\n"
-
-        ret += f"\n{Fore.CYAN}C Functions:\n{Fore.RESET}"
-        for f in self.c_funcs:
-            ret += f" {f}\n"
-
-        ret += f"\n{Fore.CYAN}Includes:\n{Fore.RESET}"
-        ret += f"{Fore.BLUE}"
-        for i in self.includes:
-            ret += f" {i}\n"
-        ret += f"{Fore.RESET}\n"
-
-        ret += f"\n{Fore.CYAN}Enums:\n{Fore.RESET}"
-        for f in self.enums:
-            ret += f" {f}\n"
-
-        ret += f"{Fore.CYAN}\nMessage Size:{Fore.RESET} {self.msg_size}\n"
-        return ret
-
-def write_file(filename, content):
-    # filename = "python/" + msg_parts.file.stem + ".py"
-    # with open(filename, mode="w", encoding="utf-8") as fd:
-    #     fd.write(content)
-    #     print(f"Wrote File: {filename}")
-    with filename.open("w", encoding="utf-8") as fd:
-        fd.write(content)
-        print(f"Wrote File: {filename}")
 
 def tokenize(file):
     # Parse a template file into a dictionary of tokens
@@ -221,110 +138,6 @@ def tokenize(file):
 
     return mp
 
-def create_python(msg_parts, out_path):
-    comments = []
-    for c in msg_parts.comments:
-        comments.append(c)
-
-    func_args = []
-    for t, ars, v, c in msg_parts.fields:
-        func_args.append(v)
-
-    includes = []
-    for i in msg_parts.includes:
-        ii = f'from {i} import *'
-        includes.append(ii)
-
-    vars = []
-    for t, ars, v, c in msg_parts.fields:
-        line = f"{v}: {var_types[t].py}"
-        if c: line += f" {c}"
-        vars.append(line)
-
-    # env = Environment(loader=FileSystemLoader("templates"))
-    tmpl = env.get_template("msg.py.jinja")
-    info = {
-        "name": msg_parts.file.stem,
-        "vars": vars,
-        "includes": includes,
-        "msg_size": msg_parts.msg_size,
-        # "msg_size_type": "uint8_t",
-        "comments": comments,
-        "args": func_args,
-        "functions": msg_parts.py_funcs,
-        "enums": msg_parts.enums,
-        "format": var_types[ msg_parts.file.stem ].fmt,
-        "msgid": msg_parts.id,
-        "license_notice": msg_parts.license_notice
-    }
-    content = tmpl.render(info)
-
-    filename = msg_parts.file.stem + "_t.py"
-    filename = out_path/filename
-    # filename = pathlib.Path(filename)
-    write_file(filename, content)
-
-
-def create_c_header(msg_parts, out_path):
-    """
-    struct
-        - vars: string, "int bob[2];"
-
-    functions
-        - func_args: tuple(type, var_name), ("int","bob[2]")
-    """
-    comments = []
-    for c in msg_parts.comments:
-        c = c.replace("#", "//")
-        comments.append(c)
-
-    func_args = []
-    for t, ars, v, c in msg_parts.fields:
-        if var_types[t].complex: t = var_types[t].c + "&"
-        else: t = var_types[t].c
-        if ars > 0:
-            vv = f"{v}[{ars}]"
-        else:
-            vv = f"{v}"
-
-        func_args.append((t,vv,v))
-
-    includes = []
-    for i in msg_parts.includes:
-        ii = f'#include "{i}.h"'
-        includes.append(ii)
-
-    vars = []
-    for t, ars, v, c in msg_parts.fields:
-        if ars == 0: line = f"{var_types[t].c} {v};"
-        else: line = f"{var_types[t].c} {v}[{ars}];"
-        if c: line += f" {c.replace('#','//')}"
-        vars.append(line)
-
-    # env = Environment(loader=FileSystemLoader("templates"))
-    tmpl = env.get_template("msg.cpp.jinja")
-    info = {
-        "name": msg_parts.file.stem,
-        "vars": vars,
-        "includes": includes,
-        "msg_size": msg_parts.msg_size,
-        "msg_size_type": "uint8_t",
-        "comments": comments,
-        "args": func_args,
-        "functions": msg_parts.c_funcs,
-        "enums": msg_parts.enums,
-        "msgid": msg_parts.id,
-        "license_notice": msg_parts.license_notice,
-        "namespace": msg_parts.namespace
-    }
-    content = tmpl.render(info)
-
-    filename = msg_parts.file.stem + "_t.hpp"
-    filename = out_path/filename
-    # filename = pathlib.Path(filename)
-    write_file(filename, content)
-
-
 def main(files):
     license = ""
     if "license" in files.keys():
@@ -395,14 +208,40 @@ def main(files):
         create_c_header(msg_parts, cppdir)
         create_python(msg_parts, pydir)
 
+def run():
+    parser = argparse.ArgumentParser(
+        prog='ProgramName',
+        description='What the program does',
+        epilog='Text at the bottom of help')
+    parser.add_argument('filename')
+    parser.add_argument('-l', '--license', help='license', default="MIT")
+    parser.add_argument('-n', '--namespace', help='namespace', default="yivo")
+    parser.add_argument('-o', '--output', help='output location', default=".")
+    args = vars(parser.parse_args())
+    print(args)
 
-info = {
-    "namespace": "foobar",
-    "license": "MIT Kevin Walchko (c) 2023",
-    "output": "test",
-    1: "messages/vec.yivo",
-    2: "messages/quat.yivo",
-    4: "messages/imu.yivo",
-    5: "messages/cal.yivo"
-}
-main(info)
+    with open(args["filename"]) as fd:
+        data = json.load(fd)
+
+    if "license" not in data.keys():
+        data["license"] = args["license"]
+
+    if "output" not in data.keys():
+        data["output"] = args["output"]
+
+    if "namespace" not in data.keys():
+        data["namespace"] = args["namespace"]
+
+    main(data)
+
+if __name__ == "__main__":
+    info = {
+        "namespace": "foobar",
+        "license": "MIT Kevin Walchko (c) 2023",
+        "output": "test",
+        1: "messages/vec.yivo",
+        2: "messages/quat.yivo",
+        4: "messages/imu.yivo",
+        5: "messages/cal.yivo"
+    }
+    main(info)
