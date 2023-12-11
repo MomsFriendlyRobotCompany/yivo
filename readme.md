@@ -8,7 +8,7 @@
 
 Trying to standardize the way I access sensors.
 
-# API
+## API
 
 | Part     | In Checksum | Type  | Description |
 |----------|-------------|-------|-------------|

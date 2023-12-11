@@ -39,6 +39,9 @@ class YivoParser:
         self.payload_size = 0
 
     def parse(self, c):
+        if c == None or len(c) == 0:
+            return False
+
         ret = False
         # print(c)
         if self.readState == ReadState_t.NONE_STATE:
