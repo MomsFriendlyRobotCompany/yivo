@@ -49,6 +49,8 @@ def create_python(msg_parts, out_path):
         if c: line += f" {c}"
         vars.append(line)
 
+    # print(">>", msg_parts.file.stem)
+
     tmpl = env.get_template("msg.py.jinja")
     info = {
         "name": msg_parts.file.stem,

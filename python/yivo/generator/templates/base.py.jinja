@@ -4,7 +4,7 @@ import dataclasses
 
 def id2str(id):
     {% for mid, name in ids.items() -%}
-    if id == {{ mid }}: return "{{ name|upper }}"
+    if id == {{ mid }}: return "{{ name|lower }}_t"
     {% endfor -%}
     return "UNKNOWN"
 
@@ -31,6 +31,7 @@ def sizeof(a):
 
 def cls(a):
     return a.__yivo__()[2]
+    {# return a.__class__ #}
 
 def msg_id(a):
     return a.__yivo__()[3]

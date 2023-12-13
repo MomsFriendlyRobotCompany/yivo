@@ -12,6 +12,9 @@ from colorama import Fore
 
 def make_Struct(payload):
     """
+    Wraps the payload format inside the header/footer format
+    yivo uses.
+
     [ 0, 1, 2, 3,4,    5:-2, -1]
     [h0,h1,LN,HN,T, payload, CS]
     Header: h0, h1
@@ -199,6 +202,10 @@ class Yivo:
         return Errors.NONE, val
 
     def valid_msg(self, msg):
+        """
+        Checks message to make sure it is valid, returns
+        True if the message is correct, False otherwise.
+        """
         size, msgid, payload, cs = chunk(msg)
 
         a = ord(self.header[0])

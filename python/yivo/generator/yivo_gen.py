@@ -21,6 +21,15 @@ logger = logging.getLogger(__name__)
 
 Field = namedtuple("Field", "type array_size var comment")
 
+py_init = """
+# this file is auto generated
+from .base import fmt
+from .base import sizeof
+from .base import cls
+from .base import msg_id
+from .base import id2str
+"""
+
 class Enums:
     def __init__(self, name, size=None):
         self.name = name
@@ -163,7 +172,8 @@ def main(files):
     # create the base headers for messages ------------
     ids = {}
     for k,v in files.items():
-        ids[k] = v.split('.')[0]
+        f = pathlib.Path(v)
+        ids[k] = f.stem
 
     baseinfo = [
         ("base.py.jinja", ids, "py"),
@@ -188,6 +198,9 @@ def main(files):
 
     # create messages from each template ---------------
     path = pathlib.Path(".").absolute()
+
+    write_file(pydir/"__init__.py", py_init)
+
     for msgid, file in files.items():
         file = path/file
         msg_parts = tokenize(file)
