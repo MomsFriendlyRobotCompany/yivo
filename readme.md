@@ -40,15 +40,15 @@ Trying to standardize the way I access sensors.
 ## Todo
 
 - [ ] Make C and python functions/objects match ... they are different right now
-- [ ] Should I move to a readl CRC-8 checksum?
+- [ ] Should I move to a real CRC-8 checksum?
 - [x] Remove messages from library. This is just a binary packer and
       not dependant on the message format other than, it is a `struct`
 - [x] c++: Make a header only library
-- [ ] Generate C and Python messages from a template instead of writing independently
-- [ ] c++: rename `YivoPack_t` to something else like `ypkt_t`
+- [x] Generate C and Python messages from a template instead of writing independently
+- [ ] c++: rename `YivoPack_t` to something else like `yivopkt_t`
     - [ ] Add method `bool has_valid_chksum()`? Class could calculate checksum and then compare
     to its checksum
-- [ ] c++: Should I move away from `std::vector` and to a fixed array size, since on create of
+- [x] c++: Should I move away from `std::vector` and to a fixed array size, since on create of
     a message, I know the complete size ... it isn't a mystery at that point
     - would now have to use `new` and `delete` which aren't my favorite
 

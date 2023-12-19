@@ -26,6 +26,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.8"
 colorama = "*"
+jinja2 = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
