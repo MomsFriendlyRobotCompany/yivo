@@ -26,4 +26,5 @@ class {{ name }}_t(Base):
     def __yivo__(self):
         # (fmt, size, name, id)
         # name_t.__class__ already has name, do I need it again?
-        return ("{{ format }}", {{ msg_size }}, {{ name }}_t, {{ msgid }})
+        {# return ("{{ format }}", {{ msg_size }}, {{ name }}_t, {{ msgid }}) #}
+        return ("{{ format }}", {{ msg_size }}, {{ msgid }})

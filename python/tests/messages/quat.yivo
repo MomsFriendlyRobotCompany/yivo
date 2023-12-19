@@ -3,8 +3,6 @@ float x
 float y
 float z
 
-fru fru
-
 <c
 float magnitude() {
   return sqrtf(w*w + x*x + y*y + z*z);

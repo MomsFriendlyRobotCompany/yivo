@@ -30,8 +30,8 @@ def sizeof(a):
     return a.__yivo__()[1]
 
 def cls(a):
-    return a.__yivo__()[2]
-    {# return a.__class__ #}
+    {# return a.__yivo__()[2] #}
+    return a.__class__
 
 def msg_id(a):
-    return a.__yivo__()[3]
+    return a.__yivo__()[2]

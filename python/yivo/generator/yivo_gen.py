@@ -138,7 +138,8 @@ def tokenize(file):
                 comment += f"size: {var_types[typ].size}"
             except:
                 print(f"{Fore.RED}*** Invalid keyword in line: {line} ***{Fore.RESET}")
-                continue
+                sys.exit(1)
+                # continue
 
         args = Field(typ, array_size, var, comment)
         mp.fields.append(args)
