@@ -23,13 +23,13 @@ SOFTWARE.
 ******************************************************************************/
 #pragma once
 
-#include <ostream>
+// #include <ostream>
 #include <numeric> // std::accumulate
 #include <string>
 
-namespace yv {
+// namespace yv {
 static
-std::string to_string(const yivopkt_t& msg) {
+std::string to_string(const yivo::yivopkt_t& msg) {
   std::string s;
   if (msg.size() == 0) return s;
   s += (char)msg[0];
@@ -42,9 +42,9 @@ std::string to_string(const yivopkt_t& msg) {
   );
   return s;
 }
-}
+// }
 
-inline
-std::ostream &operator<<(std::ostream &os, yivopkt_t const &msg) {
-  return os << yv::to_string(msg);
-}
+// inline
+// std::ostream &operator<<(std::ostream &os, yivopkt_t const &msg) {
+//   return os << to_string(msg);
+// }

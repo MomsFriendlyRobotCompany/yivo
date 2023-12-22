@@ -4,6 +4,7 @@
 #include <yivo.hpp>
 
 using namespace std;
+using namespace yivo;
 
 // some struct I want to pack
 struct Sensor {
@@ -11,7 +12,7 @@ struct Sensor {
 };
 
 int main() {
-  Yivo yivo;
+  Parser yivo;
   yivopkt_t ret;
   Sensor sen;
   sen.f[0] = 1.1f;
