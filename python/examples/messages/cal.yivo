@@ -1,0 +1,8 @@
+float[12] cals
+uint8 sensor
+
+<enum types uint8_t
+accels = 1
+gyros = 2
+mags = 4
+enum>

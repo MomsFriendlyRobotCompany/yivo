@@ -4,7 +4,7 @@
 #include <yivo.hpp>
 
 using namespace std;
-// constexpr size_t header_size = 6;
+using namespace yivo;
 
 struct __attribute__((packed)) msg_t {
   uint8_t a;  // 1
@@ -12,7 +12,7 @@ struct __attribute__((packed)) msg_t {
 }; // 5 bytes
 
 TEST(yivo, yivopkt_t) {
-  Yivo yivo(4);
+  Parser yivo(4);
   msg_t m{105, 1000};
 
   yivopkt_t msg;
@@ -45,7 +45,7 @@ TEST(yivo, pack_unpack) {
 }
 
 TEST(yivo, read) {
-  Yivo yivo;
+  Parser yivo;
   msg_t m{40, 3100};
 
   yivopkt_t msg;

@@ -26,8 +26,10 @@ SOFTWARE.
 #include <cstdint>
 
 
-static constexpr uint8_t YIVO_HEADER_0 = '$';
-static constexpr uint8_t YIVO_HEADER_1 = 'K';
+namespace yivo {
+
+constexpr uint8_t YIVO_HEADER_0 = '$';
+constexpr uint8_t YIVO_HEADER_1 = 'K';
 constexpr uint16_t YIVO_H0 = 0;
 constexpr uint16_t YIVO_H1 = 1;
 constexpr uint16_t YIVO_LN = 2;
@@ -137,4 +139,6 @@ class yivopkt_t {
   uint8_t* buffer=nullptr;
   uint16_t buffer_size{0}; // payload_size + 6
 
-};
+}; // end class
+
+} // end namespace

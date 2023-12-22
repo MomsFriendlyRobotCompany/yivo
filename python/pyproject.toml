@@ -26,10 +26,14 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.8"
 colorama = "*"
+jinja2 = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
 numpy = "*"
+
+[tool.poetry.scripts]
+yivo_generate = 'yivo.generator.yivo_gen:run'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
