@@ -11,17 +11,21 @@
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/yivo?color=aqua)
 
 
-Trying to standardize the way I access sensors.
+Trying to standardize the way I access serial data from sensors and stuff.
+
+- Languages
+    - C++
+    - Python
 
 ## API
 
-| Part     | In Checksum | Type  | Description |
-|----------|-------------|-------|-------------|
-| Header   |   | `uint8_t[2]`    | default `$K` |
+| Part     | In Checksum | Type  | Description                                       |
+|----------|-------------|-------|---------------------------------------------------|
+| Header   |   | `uint8_t[2]`    | default `$K`                                      |
 | Size     | x | `uint16_t`      | 0-65,535 bytes, stored as [L,H] => `(H << 8) | L` |
-| Type     | x | `uint8_t`       | 255 message IDs, 0 is not allowed as an ID |
-| Data     | x | `uint8_t[Size]` | payload data array |
-| Checksum |   | `uint8_t`       | XOR of size, type, and data bytes |
+| Type     | x | `uint8_t`       | 255 message IDs, `0` is not allowed as an ID      |
+| Data     | x | `uint8_t[Size]` | payload data array                                |
+| Checksum |   | `uint8_t`       | XOR of size, type, and data bytes                 |
 
 | 0 | 1 | 2 | 3 | 4 | ... | -1 |
 |---|---|---|---|---|-----|----|
@@ -46,79 +50,23 @@ Trying to standardize the way I access sensors.
 
 - [ ] Make C and python functions/objects match ... they are different right now
 - [ ] Should I move to a real CRC-8 checksum?
+- [ ] Generate C and Python messages from a template instead of writing independently
+    - Don't like solution, not sure it is really useful
+- [ ] Add method `bool has_valid_chksum()`? Class could calculate checksum and then compare
+    to its checksum
+
+### Done
+
 - [x] Remove messages from library. This is just a binary packer and
       not dependant on the message format other than, it is a `struct`
 - [x] c++: Make a header only library
-- [x] Generate C and Python messages from a template instead of writing independently
-- [ ] c++: rename `YivoPack_t` to something else like `yivopkt_t`
-    - [ ] Add method `bool has_valid_chksum()`? Class could calculate checksum and then compare
-    to its checksum
+- [x] c++: rename `YivoPack_t` to something else like `yivopkt_t`
 - [x] c++: Should I move away from `std::vector` and to a fixed array size, since on create of
     a message, I know the complete size ... it isn't a mystery at that point
-    - would now have to use `new` and `delete` which aren't my favorite
-
-## Python
-
-```python
-from yivo import Yivo, MsgInfo
-
-# make some messages we want to send/receive
-A = namedtuple("A","x y")      # id = 1
-B = namedtuple("B", "x y z t") # id = 2
-
-msgdb = MsgInfo()
-msgdb[1] = ("2f", A) # 2 floats
-msgdb[2] = ("4f", B) # 4 floats
-
-yivo = Yivo(msgdb)
-pkt = yivo.pack(1, A(1.,2.))
-
-id = 0
-while id == 0:
-    b = serial_read() # get a byte from somewhere
-    id = yivo.parse(b) # 0 or msg_id
-
-err, msg = yivo.unpack() # err > 0 if failure to unpack
-```
-
-## C++
-
-- `yivopkt_t`: packs/unpacks (or encodes/decodes) c `structs` for transmission
-    - `uint8_t* data()`: get point to buffer
-    - `uint16_t size()`: get size of buffer
-    - `uint8_t msg_id()`: get message id
-    - `void pack(id,*data,size)`: encode a `struct` to binary
-    - `T unpack<T>()`: decode a binary message to a `struct`
-- `Yivo`: basically a state machine for reading in serial data and determining when you have a message to read
-    - `uint8_t parse(c)`: read in a byte at a time and return an ID or 0
-    - `void get_packet(pkt)`: copy binary message to `yivopkt_t`
-
-```cpp
-#include <yivo.hpp>
-
-// some messages
-struct A {int a;}; // id 1
-struct B {int b;}; // id 2
-
-Yivo yivo;
-
-yivopkt_t pkt;
-pkt.pack(1, A{1}, sizeof(A));
-
-serial_send(pkt.data(), pkt.size()); // somehow send a message
-
-uint8_t id = 0;
-while (id == 0) {
-    uint8_t b = serial_read(); // get a byte from somewhere
-    id = yivo.parse(b);
-}
-yivopkt_t rep;
-yivo.get_packet(rep);
-
-// then decode the received message
-if (id == 1) A a = rep.unpack<A>();
-else if (id == 2) B b = rep.unpack<B>();
-```
+    - NO
+        - would now have to use `new` and `delete` which aren't my favorite
+        - `std::array` puts data on stack and can only handle a limited size before
+           you overflow the stack
 
 # MIT License
 

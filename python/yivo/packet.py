@@ -48,6 +48,10 @@ class MsgInfo(UserDict):
         value = Value(fmt, cls)
         super().__setitem__(key, value)
 
+    def get_msgsize(self, msg_id):
+        s = super().__getitem__(msg_id)[0]
+        return s.size
+
 @unique
 class Errors(IntEnum):
     NONE             = 0
@@ -119,6 +123,7 @@ class Yivo:
     #   LN: Low Byte
     # T: packet type or MsgID
     pack_cs = Struct("<B")
+    msgInfo = None
 
     def __init__(self, database, h0=b'$', h1=b'K'):
         """
@@ -137,6 +142,10 @@ class Yivo:
 
         self.parser = YivoParser(self.header)
         self.data = None
+
+    def get_msgsize(self, msg_id):
+        # s = self.msgInfo[msg_id][0]
+        return self.msgInfo.get_msgsize(msg_id)
 
     def pack(self, msgID, data):
         """
