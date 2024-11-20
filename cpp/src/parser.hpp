@@ -32,6 +32,85 @@ SOFTWARE.
 
 namespace yivo {
 
+
+// enum ReadState_t {
+//   NONE_STATE, // 0
+//   H0_STATE,   // 1
+//   H1_STATE,   // 2
+//   S0_STATE,   // 3
+//   S1_STATE,   // 4
+//   TYPE_STATE, // 5
+//   DATA_STATE, // 6
+//   CS_STATE    // 7
+// };
+
+
+// uint8_t parse(uint8_t *inbuffer, size_t size) {
+//   uint8_t ret = 0;
+//   uint8_t c;
+//   uint8_t buffer_msgid = 0;
+//   uint8_t readState = NONE_STATE;
+//   uint16_t payload_size = 0;
+  
+//   for (size_t i=0; i < size; ++i) {
+//     c = buffer[i];
+//     switch (readState) {
+//     case NONE_STATE:
+//       if (c == YIVO_HEADER_0) {
+//         // reset_buffer();
+//         readState = H0_STATE;
+//         buffer.push_back(c); // h0
+//       }
+//       else readState = NONE_STATE; // this state will reset
+//       break;
+//     case H0_STATE:
+//       if (c == YIVO_HEADER_1) {
+//         readState = H1_STATE;
+//         buffer.push_back(c); // h1
+//       }
+//       else readState = NONE_STATE; // this state will reset
+//       break;
+//     case H1_STATE:
+//       readState = S0_STATE;
+//       buffer.push_back(c); // size0
+//       break;
+//     case S0_STATE:
+//       readState    = S1_STATE;
+//       payload_size = (c << 8) | buffer[2];
+//       buffer.push_back(c); // size1
+//       break;
+//     case S1_STATE:
+//       readState    = TYPE_STATE;
+//       buffer.push_back(c); // type or msg id
+//       buffer_msgid = c;
+//       break;
+//     case TYPE_STATE:
+//       readState = DATA_STATE;
+//       buffer.push_back(c); // data0
+//       break;
+//     case DATA_STATE:
+//       buffer.push_back(c); // data1-dataN
+//       if ((buffer.size() - 5) == payload_size) readState = CS_STATE;
+//       break;
+//     case CS_STATE:
+//       buffer.push_back(c); // checksum
+//       // check if cs is correct
+//       uint8_t cs = 0;
+//       for (size_t i=2; i < buffer.size()-1; ++i) cs ^= buffer[i];
+//       if (cs == c) {
+//         ret = buffer_msgid;
+//         // printf("good checksum\n");
+//         break;
+//       }
+//       // else printf(" %d != %d\n", (int)c, (int)cs);
+//       readState = NONE_STATE;
+//       break;
+//     }
+//   }
+
+//   return ret;
+// }
+
 class Parser {
 public:
   Parser(size_t size=64): reserve_size(size) {

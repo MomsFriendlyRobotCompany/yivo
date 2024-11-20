@@ -23,6 +23,10 @@ SOFTWARE.
 ******************************************************************************/
 #pragma once
 
+#ifndef __YIVO_HPP__
+#define __YIVO_HPP__
+#endif
+
 #include <cstdint>
 #include <cstring> // std::memcpy
 #include "yivopkt.hpp"

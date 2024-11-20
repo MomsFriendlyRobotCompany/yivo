@@ -12,7 +12,7 @@ struct Sensor {
 };
 
 int main() {
-  Parser yivo;
+  Parser yivo(16);
   yivopkt_t ret;
   Sensor sen;
   sen.f[0] = 1.1f;

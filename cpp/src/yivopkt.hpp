@@ -39,16 +39,20 @@ constexpr uint16_t YIVO_PL = 5;
 constexpr uint16_t YIVO_OVERHEAD = 6; // h0,h1,LN,HN,ID, ..., CS
 
 class yivopkt_t {
+
+  uint8_t* buffer{nullptr};
+  uint16_t buffer_size{0}; // payload_size + 6
+
   public:
   yivopkt_t() {}
 
   yivopkt_t(const yivopkt_t&) = delete;
-  yivopkt_t(const yivopkt_t&&) = delete;
+  // yivopkt_t(const yivopkt_t&&) = delete;
+  yivopkt_t(const yivopkt_t&& p) { fill(p.data(), p.size()); }
   yivopkt_t& operator=(const yivopkt_t&) = delete;
-
-  // yivopkt_t(const yivopkt_t && y) {
-  //   resize(y.size());
-  //   memcpy(buffer, y.data(), y.size());
+  // void operator=(const yivopkt_t& p) {
+  //   fill(p.data(), p.size());
+  //   // return *this;
   // }
 
   ~yivopkt_t() {
@@ -85,7 +89,7 @@ class yivopkt_t {
   This is like a 'copy' for the whole yivo packet from header0
   to checksum.
   */
-  void fill(uint8_t* data, const uint16_t len) {
+  void fill(const uint8_t* data, const uint16_t len) {
     if (data == nullptr) return;
     resize(len);
     memcpy(buffer, data, len);
@@ -95,9 +99,8 @@ class yivopkt_t {
   inline
   T unpack() {
     T val{0};
-    if (buffer == nullptr || buffer_size < 6) return val;
-    // uint16_t len = buffer_size - 6; //(buffer[YIVO_HN] << 8) | buffer[YIVO_LN];
-    memcpy((uint8_t *)(&val), &buffer[YIVO_PL], buffer_size - 6);
+    if (buffer == nullptr || buffer_size < YIVO_OVERHEAD) return val;
+    memcpy((uint8_t*)(&val), &buffer[YIVO_PL], buffer_size - YIVO_OVERHEAD);
     return val;
   }
 
@@ -111,9 +114,10 @@ class yivopkt_t {
 
   bool valid_msg() {
     if (buffer == nullptr) return false;
-    if (buffer_size < 6) return false;
+    if (buffer_size < YIVO_OVERHEAD) return false;
     if ((buffer[0] != YIVO_HEADER_0) || (buffer[1] != YIVO_HEADER_1)) return false;
-    if ((buffer_size - 6) != ((buffer[YIVO_HN] << 8) | buffer[YIVO_LN])) return false;
+    uint16_t msg_size = (buffer[YIVO_HN] << 8) | buffer[YIVO_LN];
+    if ((buffer_size - YIVO_OVERHEAD) != msg_size) return false;
     if (buffer[YIVO_ID] == 0) return false;
     return has_valid_checksum();
   }
@@ -122,11 +126,12 @@ class yivopkt_t {
   const uint8_t* end() const { return buffer+buffer_size; }
 
   protected:
-  void resize(uint16_t s) {
+  void resize(uint16_t size) {
     if (buffer != nullptr) delete [] buffer;
     // printf("new %d\n", (int)s);
-    buffer_size = s;
-    buffer = new uint8_t[buffer_size];
+    // buffer_size = s;
+    buffer = new uint8_t[size];
+    buffer_size = size;
   }
 
   uint8_t calc_checksum() {
@@ -136,9 +141,6 @@ class yivopkt_t {
     return (uint8_t)(cs & 0x000000FF);
   }
 
-  uint8_t* buffer=nullptr;
-  uint16_t buffer_size{0}; // payload_size + 6
+}; // end class yivopkt_t
 
-}; // end class
-
-} // end namespace
+} // end namespace yivo
