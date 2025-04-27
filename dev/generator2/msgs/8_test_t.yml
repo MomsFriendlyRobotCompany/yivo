@@ -1,0 +1,52 @@
+---
+# namespace: bob
+constant: [
+    {
+        type: float32,
+        name: terry,
+        value: 256
+    },
+    {
+        type: uint32,
+        name: fred,
+        value: 1024
+    }
+]
+
+import: [vec, tom]
+
+vec: [accel, gyro, mag]
+float32: [timestamp, temperature, pressure]
+int8: bob
+uint16: tom
+int32[5]: [barry, tom]
+bool: ok
+float64: hope
+
+enum: [
+    {
+      name: harry,
+      type: uint8, 
+      values: {
+        a: 0,
+        b: 1,
+        c: 2
+      }
+    },
+    {
+      name: sam,
+      values: {
+        a: 0,
+        b: 1,
+        c: 2
+      }
+    }
+]
+
+# union: {
+#   name: vector,
+#   values: [
+#       {float32: x, float32: y},
+#       {float32_2: b}
+#     ]
+# }
