@@ -1,0 +1,86 @@
+#pragma once
+
+#include <stdint.h>
+#include <stdbool.h>
+{%- for inc in includes %}
+#include "{{ inc }}.h"
+{%- endfor %}
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// message sizes ------------------------------------------
+{% for msg in messages -%}
+#define {{ package|upper }}_{{ msg.name|upper|replace("_T","") }}_SIZE {{ msg.size }}
+{% endfor %}
+// message ids --------------------------------------------
+{% for msg in messages -%}
+{% if msg.id > 0 -%}
+#define {{ package|upper }}_{{ msg.name|upper|replace("_T","") }}_ID {{ msg.id }}
+{% endif -%}
+{% endfor %}
+// message names ------------------------------------------
+{% for msg in messages -%}
+{% if msg.id > 0 -%}
+#define {{ package|upper }}_MSG_{{ msg.id }} "{{ msg.name|lower }}"
+{% endif -%}
+{% endfor %}
+{% if defines|length > 0 -%}
+// global defines -----------------------------------------
+{% for def in defines -%}
+#define {{ package| upper }}_{{ def.name|upper }} ({{ def.value }}) // {% if def.comment %} {{ def.comment }} {% endif %}
+{% endfor -%}
+{% endif %}
+{% if constants|length > 0 -%}
+// global constants -----------------------------------------
+{% for c in constants -%}
+{% if c.array_size -%}
+static const {{ c.ctype }} {{ c.name }}[{{ c.array_size }}] = {{ c.default }};  // {% if c.comments %} {{ c.comments }} {% endif %}
+{% else -%}
+static const {{ c.ctype }} {{ c.name }} = {{ c.default }};  // {% if c.comments %} {{ c.comments }} {% endif %}
+{%- endif -%}
+{% endfor %}
+{% endif %}
+
+{%- if constants|length > 0 %}
+{%- for c in constants %}
+#define {{ name|upper }}_{{ c.var|upper }} {{ c.value }}
+{%- endfor -%}
+{% endif -%}
+
+
+{% if enums|length > 0 %}
+{%- for enum in enums %}
+{% for comment in enum.comments -%}
+// {{ comment }}
+{% endfor -%}
+typedef enum {
+{%- for val in enum.fields %}
+  {{ enum.name|upper }}_{{ val.name|upper }} = {{ val.value }} {%- if loop.index != loop.length %}, {% endif -%} // {{ val.comment }}
+{%- endfor %}
+} {{ enum.name|lower }}_e;
+{% endfor %}
+{% endif %}
+
+{% for msg in messages %}
+{% for comm in msg.comments -%}
+// {{ comm }}
+{% endfor -%}
+typedef struct {
+{%- for var in msg.fields %}
+  {% if var.array_size -%}
+  {{ var.ctype }} {{ var.name }}[{{ var.array_size }}]; {% if var.comments %} // {{ var.comments }} {% endif %}
+  {% else -%}
+  {{ var.ctype }} {{ var.name }}; {% if var.comments %} // {{ var.comments }} {% endif %}
+  {%- endif -%}
+{%- endfor %}
+} __attribute__((packed)) {{ msg.name|lower }};
+{% endfor %}
+
+#ifdef __cplusplus
+}
+#endif
+
+

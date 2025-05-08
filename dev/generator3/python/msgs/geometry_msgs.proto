@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package kevin;
+
+
+enum battery_technology {
+  // Power supply technology (chemistry) constants
+  UNKNOWN = 0; // Unknown battery technology
+  NIMH = 1;    // Nickel-Metal Hydride battery
+  LION = 2;    // Lithium-ion battery
+  LIPO = 3;    // Lithium Polymer battery
+  LIFE = 4;    // Lithium Iron Phosphate battery
+  NICD = 5;    // Nickel-Cadmium battery
+  LIMN = 6;    // Lithium Manganese Dioxide battery
+  TERNARY = 7; // Ternary Lithium battery
+  VRLA = 8;    // Valve Regulated Lead-Acid battery
+}
+
+type vector2_t {
+  float x = 0;
+  float y = 0;
+}
+
+type vector3_t {
+  float x = 0;
+  float y = 0;
+  float z = 0;
+}
+
+type quaternion_t {
+  float w = 1;
+  float x = 0;
+  float y = 0;
+  float z = 0;
+}
+
+message timestamp_t: 100 {
+  // Represents seconds of UTC time since Unix epoch
+  // Non-negative fractions of a second at nanosecond resolution. Negative
+  // second values with fractions must still have non-negative nanos values
+  // that count forward in time. Must be from 0 to 999,999,999
+  // inclusive.
+  uint64 seconds;
+  uint32 nanos;
+}

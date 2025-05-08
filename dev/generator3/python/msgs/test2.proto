@@ -1,0 +1,80 @@
+package kevin;
+
+import "geometric_msgs";
+import "how/now/brown/cow.proto";
+
+define bob = 22; // define test
+define sally = bob / M_PI * 34.0; // equation
+
+constant uint8 bob = 33; // const test
+
+enum BatteryHealth {
+  // Power supply health constants
+  unknown = 0;
+  GOOD = 1;
+  OVERHEAT = 2;
+  DEAD = 3;
+  OVERVOLTAGE = 4;
+  UNSPEC_FAILURE = 5;
+  COLD = 6;
+  WATCHDOG_TIMER_EXPIRE = 7;
+  SAFETY_TIMER_EXPIRE = 8;
+}
+
+enum BATTERY_TECHNOLOGY {
+  // Power supply technology (chemistry) constants
+  // add some other comments
+  // and this too
+  UNKNOWN = 0; // Unknown battery technology
+  NIMH = -1;    // Nickel-Metal Hydride battery
+  LION = -2;    // Lithium-ion battery
+  LIPO = 3;    // Lithium Polymer battery
+  LIFE = 4;    // Lithium Iron Phosphate battery
+  NICD = 5;    // Nickel-Cadmium battery
+  LIMN = 6;    // Lithium Manganese Dioxide battery
+  TERNARY = 7; // Ternary Lithium battery
+  VRLA = 8;    // Valve Regulated Lead-Acid battery
+}
+
+
+type vector2_t {
+  float x = 0;
+  float y = 0;
+}
+
+type vector3_t {
+  float x = 0;
+  float y = 0;
+  float z = 0;
+}
+
+type quaternion_t {
+  float w = 1;
+  float x = 0;
+  float y = 0;
+  float z = 0;
+}
+
+type timestamp_t {
+  // Represents seconds of UTC time since Unix epoch
+  // Non-negative fractions of a second at nanosecond resolution. Negative
+  // second values with fractions must still have non-negative nanos values
+  // that count forward in time. Must be from 0 to 999,999,999
+  // inclusive.
+  uint64 seconds;
+  uint32 nanos;
+}
+
+message bob_t:102 {
+  uint8 something;
+  uint32 else = 9;
+}
+
+message dummy_t: 99 {
+  float a[10] = {1,2,3,4,5,6,7,8,9,0};
+  float b = -1E-99;
+  float c; // c
+  kevin.vector3_t d; // test
+  kevin.quaternion_t q; // orientation
+  bool f;
+}

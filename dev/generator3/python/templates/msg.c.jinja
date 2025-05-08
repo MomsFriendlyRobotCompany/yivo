@@ -1,0 +1,22 @@
+
+#include <string.h> // memset, memcpy
+#include "{{ filename }}.h"
+
+
+{% for msg in messages %}
+void {{ msg.name|lower|replace("_t","") }}_init({{ msg.name|lower }} *msg) {
+  memset(msg, 0, {{ package|upper }}_{{ msg.name|upper|replace("_T","") }}_SIZE);
+  {% for field in msg.fields -%}
+  {% if field.default is not none -%}
+  {% if field.array_size is not none -%}
+  {{ field.ctype }} tmp[] = {{ field.default | replace("[", "{") | replace("]","}")  }};
+  memcpy(msg->{{ field.name }}, tmp, {{ field.array_size }} * sizeof({{ field.ctype }}));
+  {% else -%}
+  msg->{{ field.name }} = {{ field.default }}; 
+  {% endif -%}
+  {% endif -%}
+  {% endfor %}
+}
+{% endfor %}
+
+

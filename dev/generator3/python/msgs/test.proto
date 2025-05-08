@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package kevin;
+
+import "standard_msgs";
+
+// Power supply status constants
+enum Battery_Status {
+  UNKNOWN = 0;
+  CHARGING = 1;
+  DISCHARGING = 2;
+  NOT_CHARGING = 3;
+  FULL = 4;
+}
+
+// Power supply health constants
+enum Battery_Health {
+  UNKNOWN = 0;
+  GOOD = 1;
+  OVERHEAT = 2;
+  DEAD = 3;
+  OVERVOLTAGE = 4;
+  UNSPEC_FAILURE = 5;
+  COLD = 6;
+  WATCHDOG_TIMER_EXPIRE = 7;
+  SAFETY_TIMER_EXPIRE = 8;
+}
+
+// Power supply technology (chemistry) constants
+enum Battery_Technology {
+  UNKNOWN = 0; // Unknown battery technology
+  NIMH = 1;    // Nickel-Metal Hydride battery
+  LION = 2;    // Lithium-ion battery
+  LIPO = 3;    // Lithium Polymer battery
+  LIFE = 4;    // Lithium Iron Phosphate battery
+  NICD = 5;    // Nickel-Cadmium battery
+  LIMN = 6;    // Lithium Manganese Dioxide battery
+  TERNARY = 7; // Ternary Lithium battery
+  VRLA = 8;    // Valve Regulated Lead-Acid battery
+}
+
+message Pose {
+  kevin.Vector3 position = 1;
+  kevin.Quaternion orientation = 2;
+}
+
+message Transform {
+  kevin.Vector3 translation = 1;    // translation from parent to child
+  kevin.Quaternion rotation = 2; // rotation from parent to child
+}
+
+message Timestamp {
+  // Represents seconds of UTC time since Unix epoch
+  // 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+  // 9999-12-31T23:59:59Z inclusive.
+  uint64 seconds = 1;
+  float[32] bob = 3;
+
+  // Non-negative fractions of a second at nanosecond resolution. Negative
+  // second values with fractions must still have non-negative nanos values
+  // that count forward in time. Must be from 0 to 999,999,999
+  // inclusive.
+  uint32 nanos = 2;
+}
+
+message LaserScan {
+  // Timestamp of scan
+  kevin.timestamp_t timestamp = 1;
+
+  // Frame of reference
+  char frame_id[16];
+
+  // Origin of scan relative to frame of reference; points are positioned in the x-y plane relative to this origin; angles are interpreted as counterclockwise rotations around the z axis with 0 rad being in the +x direction
+  foxglove.Pose pose;
+
+  // Bearing of first point, in radians
+  double start_angle;
+
+  // Bearing of last point, in radians
+  double end_angle;
+
+  // Distance of detections from origin; assumed to be at equally-spaced angles between `start_angle` and `end_angle`
+  double ranges[127];
+}
+
+// message TransformStamped {
+//   // kevin.Header header = 1; // header.frame_id = parent_id
+//   // string child_frame_id = 2;
+//   kevin.Timestamp timestamp = 1;
+//   string parent_frame_id = 2;
+//   string child_frame_id = 3;
+//   kevin.Vector3 translation = 4;    // translation from parent to child
+//   kevin.Quaternion rotation = 5; // rotation from parent to child
+// }
+
+// message Transforms {
+//   repeated kevin.TransformStamped transforms = 1;
+// }
+
+
+// message FrameTransform {
+//   // kevin.Header header = 1; // header.frame_id = parent_id
+//   // string child_frame_id = 2;
+//   Timestamp timestamp = 1;
+//   string parent_frame_id = 2;
+//   string child_frame_id = 3;
+//   kevin.Vector3 translation = 4;    // translation from parent to child
+//   kevin.Quaternion rotation = 5; // rotation from parent to child
+// }
