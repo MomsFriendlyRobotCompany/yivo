@@ -1,0 +1,88 @@
+package drone;
+
+enum battery_tech_e {
+  // Power supply technology (chemistry) constants
+  // add some other comments
+  // and this too
+  UNKNOWN = 0; // Unknown battery technology
+  NIMH = -1;    // Nickel-Metal Hydride battery
+  LION = -2;    // Lithium-ion battery
+  LIPO = 3;    // Lithium Polymer battery
+  LIFE = 4;    // Lithium Iron Phosphate battery
+  NICD = 5;    // Nickel-Cadmium battery
+  LIMN = 6;    // Lithium Manganese Dioxide battery
+  TERNARY = 7; // Ternary Lithium battery
+  VRLA = 8;    // Valve Regulated Lead-Acid battery
+}
+
+type vec2f_t {
+  float x = 0;
+  float y = 0;
+}
+
+type vec3f_t {
+  float x = 0.0;
+  float y = 0.0;
+  float z = 0.0;
+}
+
+type quaternion_t {
+  float w = 1; // real
+  float x = 0; // img
+  float y = 0;
+  float z = 0;
+}
+
+enum frames_e {
+  robot = 1;
+  imu = 2;
+  camera = 3;
+}
+
+
+type header {
+  uint64 timestamp;
+  drone.frames_e frame;
+}
+
+message imuf_t {
+  int id = 100;
+    drone.vec3f_t a;
+    drone.vec3f_t g;
+    drone.vec3f_t m;
+    float temperature;
+}
+
+message press_t {
+  int id = 101;
+  float pressure;
+  float temperature;
+}
+
+message pose_t {
+  int id = 102;
+  drone.vec3f_t pos;
+  drone.vec3f_t vel;
+  drone.quaternion_t q;
+}
+
+// types of sensors that can be calibrated
+enum calibration_e {
+  accel = 1;
+  gyro = 2;
+  mag = 4;
+  motors = 8;
+}
+
+message calibrate_t {
+  // This is a calibration command
+  int id = 103;
+  drone.calibration_e cal;
+}
+
+message cal_params_t {
+  // This is the result of a calibration command
+  int id = 104;
+  float cal[12]; // cal matrix Ax+B
+  drone.calibration_e sensor; // which sensor
+}

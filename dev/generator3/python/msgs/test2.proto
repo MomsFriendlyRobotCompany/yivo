@@ -6,7 +6,7 @@ import "how/now/brown/cow.proto";
 define bob = 22; // define test
 define sally = bob / M_PI * 34.0; // equation
 
-constant uint8 bob = 33; // const test
+// constant uint8 rob = 33; // const test
 
 enum BatteryHealth {
   // Power supply health constants
@@ -55,7 +55,7 @@ type quaternion_t {
   float z = 0;
 }
 
-type timestamp_t {
+type Timestamp {
   // Represents seconds of UTC time since Unix epoch
   // Non-negative fractions of a second at nanosecond resolution. Negative
   // second values with fractions must still have non-negative nanos values
@@ -63,6 +63,12 @@ type timestamp_t {
   // inclusive.
   uint64 seconds;
   uint32 nanos;
+  kevin.vector3_t v;
+}
+
+type Header {
+  kevin.Timestamp ts;
+  int16 frame;
 }
 
 message bob_t:102 {
@@ -71,10 +77,11 @@ message bob_t:102 {
 }
 
 message dummy_t: 99 {
-  float a[10] = {1,2,3,4,5,6,7,8,9,0};
-  float b = -1E-99;
-  float c; // c
+  kevin.Header header;
+  // float a[10] = {1,2,3,4,5,6,7,8,9,0};
+  // float b = -1E-99;
+  // float c; // c
   kevin.vector3_t d; // test
   kevin.quaternion_t q; // orientation
-  bool f;
+  // bool f;
 }

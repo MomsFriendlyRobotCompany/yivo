@@ -1,0 +1,27 @@
+package drone;
+
+
+type vec2f_t {
+  float x = 0;
+  float y = 0;
+}
+
+type vec3f_t {
+  float x = 0;
+  float y = 0;
+  float z = 0;
+}
+
+type quaternion_t {
+  float w = 1;
+  float x = 0;
+  float y = 0;
+  float z = 0;
+}
+
+message imuf_t: 100 {
+    drone.vec3f_t a;
+    drone.vec3f_t g;
+    drone.vec3f_t m;
+    float temperature;
+}

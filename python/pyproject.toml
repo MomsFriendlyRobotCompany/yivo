@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yivo"
-version = "2024.11.11.0"
+version = "2025.08.23.0"
 description = "Message serialization"
 authors = ["walchko <walchko@users.noreply.github.com>"]
 readme = "readme.md"
@@ -26,14 +26,13 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.10"
 colorama = "*"
-# jinja2 = "*"
+jinja2 = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
-# numpy = "*"
 
-# [tool.poetry.scripts]
-# yivo_generate = 'yivo.generator.yivo_gen:run'
+[tool.poetry.scripts]
+yivogen = 'yivo.gen.yivogen:main'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -90,8 +90,15 @@ class Field:
         self.package = package
         self.dtype = dtype
         self.ctype = dtypes[package][dtype].c
-        self.pytype = dtypes[package][dtype].py
+        # self.pytype = dtypes[package][dtype].py
         self.name = name
+
+        if dtypes[package][dtype].py.find("_e") > 0:
+            self.pytype = "int"
+        else:
+            self.pytype = dtypes[package][dtype].py
+
+        # print(f">> {self.pytype}")
 
         if array_size is None:
           self.array_size = array_size
@@ -105,6 +112,8 @@ class Field:
             self.default = default
         elif (dtype == "char") and (array_size is None):
             raise Exception("char data type needs to define array size")
+        elif default:
+            self.default = default
         else:
             self.default = None
                 
@@ -196,12 +205,12 @@ class Message:
       ret.append(f"{self.name} [{self.id}] -----------------")
     else:
       ret.append(f"{self.name} -----------------------------")
-    ret.append(f"size: {self.size} format: {self.fmt}")
-    ret.append(f"extlibs: {self.extlibs}")
-    ret.append(f"constants: {self.constants}")
-    ret.append(f"comments: {self.comments}")
+    ret.append(f"  size: {self.size} format: {self.fmt}")
+    ret.append(f"  extlibs: {self.extlibs}")
+    ret.append(f"  constants: {self.constants}")
+    ret.append(f"  comments: {self.comments}")
     for f in self.fields:
-      ret.append(str(f))
+      ret.append(f"  {str(f)}")
     ret.append(" ")
 
     return "\n".join(ret)

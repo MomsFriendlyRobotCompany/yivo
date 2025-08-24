@@ -58,9 +58,9 @@ static const {{ c.ctype }} {{ c.name }} = {{ c.default }};  // {% if c.comments 
 {% endfor -%}
 typedef enum {
 {%- for val in enum.fields %}
-  {{ enum.name|upper }}_{{ val.name|upper }} = {{ val.value }} {%- if loop.index != loop.length %}, {% endif -%} // {{ val.comment }}
+  {{ enum.name|upper }}_{{ val.name|upper }} = {{ val.value }} {%- if loop.index != loop.length %}, {% endif -%} {%- if val.comment != None %} // {{ val.comment }} {% endif %}
 {%- endfor %}
-} {{ enum.name|lower }}_e;
+} {{ enum.name|lower }};
 {% endfor %}
 {% endif %}
 
@@ -72,7 +72,7 @@ typedef struct __attribute__((packed)) {
 {%- for var in msg.fields %}
   {% if var.array_size -%}
   {{ var.ctype }} {{ var.name }}[{{ var.array_size }}]; {% if var.comments %} // {{ var.comments }} {% endif %}
-  {% else -%}
+  {%- else -%}
   {{ var.ctype }} {{ var.name }}; {% if var.comments %} // {{ var.comments }} {% endif %}
   {%- endif -%}
 {%- endfor %}
