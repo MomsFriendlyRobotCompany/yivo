@@ -4,7 +4,7 @@
 # see LICENSE for full details
 ##############################################
 from struct import Struct
-from enum import IntEnum, unique # need for Errors
+from enum import IntEnum, Enum, unique # need for Errors
 from .parser import YivoParser
 from collections import namedtuple
 from collections import UserDict
@@ -15,45 +15,53 @@ def make_Struct(payload):
     Wraps the payload format inside the header/footer format
     yivo uses.
 
-    [ 0, 1, 2, 3,4,    5:-2, -1]
-    [h0,h1,LN,HN,T, payload, CS]
+    [ 0, 1, 2, 3,4,5, 0 - N  ]
+    [h0,h1,LN,HN,T,CS,payload]
     Header: h0, h1
     N: payload length
        N = (HN << 8) + LN, max data bytes is 65,536 Bytes
          HN: High Byte
          LN: Low Byte
     T: packet type or MsgID
+    CS: checksum of payload
 
-    Only insert the payload format and this returns: Struct(f"<2cHB{payload}B")
+    Only insert the payload format and this returns: Struct(f"<2cHBB{payload}B")
     """
-    return Struct(f"<2cHB{payload}B")
+    return Struct(f"<2cHBB{payload}")
 
 
-Value = namedtuple("Value", "fmt cls")
+# Value = namedtuple("Value", "fmt cls")
 
-class MsgInfo(UserDict):
-    def __setitem__(self, key, value):
-        if isinstance(key, int) == False or key > 255:
-            raise Exception("Key must be an int <= 255")
-        if isinstance(value, tuple) == False:
-            raise Exception("value must be tuple")
-        if isinstance(value[0], str) == False:
-            raise Exception("value must contain a string and class name", value[0])
-        if isinstance(value[1], type) == False:
-            raise Exception("value must contain a string and class name:", value[1])
+# class MsgInfo(UserDict):
+#     def __setitem__(self, key, value):
+#         if isinstance(key, int) == False or key > 255 or key < 1:
+#             raise Exception("Key must be an int from 1 - 255")
+#         if isinstance(value, tuple) == False:
+#             raise Exception("value must be tuple")
+#         if isinstance(value[0], str) == False:
+#             raise Exception("value must contain a format string", value[0])
+#         if isinstance(value[1], type) == False:
+#             raise Exception("value must contain a class name:", value[1])
 
-        fmt = Struct(f"<2cHB{value[0]}B")
-        cls = value[1]
+#         # fmt = Struct(f"<2cHB{value[0]}B")
+#         # fmt = value[0]
+#         # cls = value[1]
+#         fmt, cls = value
+#         print(f">> {fmt}")
 
-        value = Value(fmt, cls)
-        super().__setitem__(key, value)
+#         value = Value(Struct("<" + fmt), cls)
+#         super().__setitem__(key, value)
 
-    def get_msgsize(self, msg_id):
-        s = super().__getitem__(msg_id)[0]
-        return s.size
+#     def get_msgsize(self, msg_id):
+#         s = super().__getitem__(msg_id)[0]
+#         return s.size
+#         # return s
 
+# This is better as an Enum, becuase it prints
+# out in a human readable format instead of just
+# a number
 @unique
-class Errors(IntEnum):
+class Errors(Enum):
     NONE             = 0
     INVALID_HEADER   = 1
     INVALID_LENGTH   = 2
@@ -73,142 +81,146 @@ class Errors(IntEnum):
         elif (val == Errors.NO_DATA): return "NO_DATA"
         return f"UNKNOWN({val})"
 
-
-
-# def checksum(size,msgid,msg):
-#     if size == 0 and msg == None:
-#         return msgid
-
-#     # a,b = struct.pack('H', size)
-#     a = 0x00FF & size
-#     b = size >> 8
-
-#     cs = (a ^ b)^msgid
-#     # msg = [cs] + msg
-#     # cs = reduce(xor, msg)
-#     for m in msg:
-#         cs ^= m
-#     # print("cs", cs, cs.to_bytes(1,'little'))
-#     return cs
+# This needs to be an IntEnum because it
+# is used to access the serialized data
+@unique
+class YivoParts(IntEnum):
+    HDR0 = 0
+    HDR1 = 1
+    SZ0 = 2
+    SZ1 = 3
+    ID = 4
+    CS = 5
+    PL = 6
+    
+YIVO_OVERHEAD = 6
 
 def checksum(msg):
     cs = 0
-    for m in msg:
+    for m in msg[YivoParts.PL:]:
         cs ^= m
-    # print("cs", cs, cs.to_bytes(1,'little'))
+    return cs & 0xFF
+
+
+def checksum_payload(payload):
+    cs = 0
+    for m in payload:
+        cs ^= m
     return cs & 0xFF
 
 def chunk(msg):
-    size = msg[2] + (msg[3] << 8) # messages sent little endian
-    msgid = msg[4]
+    """Breaks up a message into chunks:
+    - size: payload size only
+    - msgid: message id
+    - payload: payload data serialized
+    - cs: checksum
+    """
+    size = msg[YivoParts.SZ0] + (msg[YivoParts.SZ1] << 8) # messages sent little endian
+    msgid = msg[YivoParts.ID]
+    cs = msg[YivoParts.CS]
 
     if size == 0:
         payload = None
     else:
-        payload = msg[5:-1]
+        payload = msg[YivoParts.PL:]
 
-    cs = msg[-1]
     return size, msgid, payload, cs
 
-def num_fields(sensor):
-    """Returns the number of fields in a message"""
-    return len(sensor._fields)
+def num_fields(data):
+    """Returns the number of fields in a namedtuple message"""
+    return len(data._fields)
 
-class Yivo:
-    # [ 0, 1, 2, 3,4, ..., -1]
-    # [h0,h1,LN,HN,T, ..., CS]
-    # Header: h0, h1
-    # N = (HN << 8) + LN, max data bytes is 65,536 Bytes
-    #   HN: High Byte
-    #   LN: Low Byte
-    # T: packet type or MsgID
+class YivoPkt:
+    """
+    [ 0, 1, 2, 3,4, 5, ...]
+    [h0,h1,LN,HN,T,CS, ...]
+    Header: h0, h1
+    N = (HN << 8) + LN, max data bytes is 65,536 Bytes
+      HN: High Byte
+      LN: Low Byte
+    T: packet type or MsgID
+    header_fmt = Struct("2cH2BB")
+    header = b"$K"
     pack_cs = Struct("<B")
     msgInfo = None
+    """
 
-    def __init__(self, database, h0=b'$', h1=b'K'):
+    def __init__(self, msg_id, fmt, obj):
         """
         Message header can be changed (not sure why) if you need to
         by setting a new h0 and h1. They must be binary characters.
         """
-        if not isinstance(h0, bytes) or not isinstance(h1, bytes):
-            raise Exception(f"Invalid header bytes: {h0}({type(h0)}) {h1}({type(h1)})")
-        self.header = (h0,h1,)
+        self.fmt = Struct(f"<2cHBB{fmt}")
+        self.payload_fmt = Struct(fmt)
+        self.payload_size = self.fmt.size - YIVO_OVERHEAD
+        self.msg_id = msg_id
+        self.obj = obj
+        print(f">> total {msg_id} size: {self.fmt.size}")
 
-        if isinstance(database, MsgInfo) == False:
-            raise Exception("database must be a MsgInfo")
+    def get_msgsize(self):
+        return self.fmt.size
 
-        self.msgInfo = database
-        self.valid_msgids = [int(x) for x in database.keys()]
+    def get_payload_size(self):
+        return self.payload_size
 
-        self.parser = YivoParser(self.header)
-        self.data = None
-
-    def get_msgsize(self, msg_id):
-        # s = self.msgInfo[msg_id][0]
-        return self.msgInfo.get_msgsize(msg_id)
-
-    def pack(self, msgID, data):
+    def pack(self, data):
         """
-        Given a MsgID and a tuple of data, returns a yivo message packet
+        Returns a yivo message packet
         """
-        # if data is None:
-        #     msg = struct.pack("<2chBB",*self.header, 0, msgID, msgID)
-        # else:
-        fmt, _ = self.msgInfo[msgID]
-        sz = fmt.size - 6
-        msg = fmt.pack(*self.header, sz, msgID, *data, 0)
-        # cs = checksum(sz,msgID,msg[5:-1])
-        cs = checksum(msg[2:-1])
-        msg = msg[:-1] + self.pack_cs.pack(cs) #cs.to_bytes(1,'little')
+        sz = self.payload_size
+        cs = checksum_payload(data)
+        # print(f">> fmt: {self.fmt.format}  data: {data}")
+        msg = self.fmt.pack(b'$', b'K', sz, self.msg_id, cs, *data)
+        # print(f">> {msg}")
         return msg
 
     def dump(self, msg):
         if msg is None:
             return
         size, msgid, payload, cs = chunk(msg)
-        payload = [x for x in payload]
-        print(f"{Fore.CYAN}==============================================")
-        print(f"{Fore.GREEN}Msg: {msg}{Fore.CYAN}")
-        print(f"Size: {size}   payload actual size: {len(payload)}")
-        print(f"msgid: {msgid}")
-        print(f"payload: {payload}")
-        print(f"checksum: {cs}   calc checksum: {checksum(msg[2:-1])}")
-        print(f"==================================================={Fore.RESET}")
 
-    def unpack(self, msg=None):
-        if msg is None:
-            return self.__unpack()
-        self.data = msg
-        return self.__unpack()
+        m = [x for x in msg]
+        print(f"==============================================")
+        print(f"Header: {Fore.GREEN}{m[:6]}")
+        print(f" Start: {msg[:2]}")
+        print(f" Size: {size}")
+        print(f" msgid: {msgid}")
+        print(f" checksum: {cs}{Fore.RESET}")
+        print(f"Payload: {Fore.MAGENTA}{m[6:]}")
+        print(f" payload actual size: {len(payload)}")
+        print(f" calc checksum: {checksum(msg)}")
+        print(f" format: {self.fmt.format[6:]}{Fore.RESET}")
+        print(f"==============================================")
 
-    def __unpack(self):
+    def unpack(self, msg):
         """
-        Unpacks a binary yivo packet
-
-        Returns:
-            Errors
-            Message
+        Unpacks either the full message (header + payload)
+        or just the payload.
         """
-        msg = self.data
-        if msg is None:
-            return Errors.NO_DATA, None
+        func = None
+        if msg[:2] == b'$K':
+            func = self.__unpack_msg
+        else:
+            func = self.__unpack_payload
 
+        return func(msg)
+
+    def __unpack_msg(self, msg):
         err = self.valid_msg(msg)
+        # print(f">> err: {err}")
         if err != Errors.NONE:
-            self.dump(msg)
-            return err, None
+            # self.dump(msg)
+            # print(f"unpack ERROR: {err}")
+            return None
+        info = self.fmt.unpack(msg)
+        val = self.obj(*info[5:])
+        return val
 
-        msgid = msg[4]
-        try:
-            fmt, obj = self.msgInfo[msgid]
-        except KeyError:
-            return Errors.INVALID_MSGID, None
-
-        info = fmt.unpack(msg)
-        # print(f"{Fore.YELLOW}{info}{Fore.RESET}")
-        val = obj(*info[4:-1])
-
-        return Errors.NONE, val
+    def __unpack_payload(self, msg):
+        # print(f"unpack msg: {msg}")
+        info = self.payload_fmt.unpack(msg)
+        val = self.obj(*info)
+        return val
 
     def valid_msg(self, msg):
         """
@@ -217,37 +229,19 @@ class Yivo:
         """
         size, msgid, payload, cs = chunk(msg)
 
-        a = ord(self.header[0])
-        b = ord(self.header[1])
-        if (msg[0] != a) or (msg[1] != b):
-            # print(msg[:2], self.header)
-            return Errors.INVALID_HEADER
+        hdr0 = ord(b'$')
+        hdr1 = ord(b'K')
 
-        if msgid not in self.valid_msgids:
-            # print(f"invalid id: {msgid}")
-            return Errors.INVALID_MSGID
+        if (msg[YivoParts.HDR0] != hdr0) or (msg[YivoParts.HDR1] != hdr1):
+            # print(msg[:2],msg[YivoParts.HDR0],msg[YivoParts.HDR1],hdr0,hdr1)
+            return Errors.INVALID_HEADER
 
         if (size == 0) or (size != len(payload)):
             # print(len(payload),"!=", size)
             return Errors.INVALID_LENGTH
-        # print(size, len(payload))
 
-        # if checksum(size, msgid, payload) != cs:
-        if checksum(msg[2:-1]) != cs:
+        if checksum(msg) != cs:
             # print("checksum failure", cs, "!=", checksum(size, msgid, payload))
-            # self.dump(msg)
             return Errors.INVALID_CHECKSUM
-        # print(cs, checksum(size, msgid, payload))
-
-        try:
-            fmt, obj = self.msgInfo[msgid]
-        except KeyError:
-            return Errors.INVALID_MSGID
 
         return Errors.NONE
-
-    def parse(self, c):
-        if self.parser.parse(c):
-            self.data, msgid = self.parser.get_info()
-            return msgid
-        return 0

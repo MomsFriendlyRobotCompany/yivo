@@ -3,32 +3,42 @@
 # Copyright (c) 2020 Kevin Walchko
 # see LICENSE for full details
 ##############################################
-from enum import IntEnum
+from enum import IntEnum, Enum
+from enum import unique
 
-ReadState_t = IntEnum("ReadState_t", [
-    "NONE_STATE",
-    "H0_STATE",
-    "H1_STATE",
-    "S0_STATE",
-    "S1_STATE",
-    "TYPE_STATE",
-    "DATA_STATE",
-    "CS_STATE"]
-)
+
+@unique
+class ReadState(Enum):
+    STATE_H0 = 0
+    STATE_H1 = 1
+    STATE_SZ0 = 2
+    STATE_SZ1 = 3
+    STATE_ID = 4
+    STATE_CS = 5
+    STATE_DATA = 6
 
 class YivoParser:
 
-    def __init__(self, header):
-        self.readState = ReadState_t.NONE_STATE
+    def __init__(self):
+        self.readState = ReadState.STATE_H0
         self.buff = None
-        self.header = header
+        self.header = b'$K'
         self.buffer_msgid = 0
+        self.index = 0
+        self.cs = 0
 
     def get_info(self):
         data = b''.join(self.buff)
         msgid = self.buffer_msgid
         self.reset()
         return data, msgid
+
+    def get_msg(self):
+        # data = b''.join(self.buff)
+        args = bytes(self.buff[:self.index])
+        # args = b''.join(args)
+        print(f"get_msg[{len(args)}]: {args}")
+        return args
 
     # def checksum(self, msg):
     #     cs = 0
@@ -39,72 +49,51 @@ class YivoParser:
 
     def reset(self):
         self.buff = None
-        self.readState = ReadState_t.NONE_STATE
+        self.readState = ReadState.STATE_H0
         self.buffer_msgid = 0
         self.payload_size = 0
+        self.index = 0
+        self.cs = 0
 
     def parse(self, c):
-        if c == None or len(c) == 0:
-            return False
+        if c == None:
+            return 0
 
-        ret = False
+        # ret = False
         # print(c)
-        if self.readState == ReadState_t.NONE_STATE:
+        if self.readState == ReadState.STATE_H0:
             if c == self.header[0]:
-                self.buff = []
-                self.buff.append(c) # h0
-                self.readState = ReadState_t.H0_STATE
-                self.payload_size = 0
-                # print("h0")
-            return False
-        elif self.readState == ReadState_t.H0_STATE:
+                self.reset()
+                self.readState = ReadState.STATE_H1
+                print("h0")
+        elif self.readState == ReadState.STATE_H1:
             if c == self.header[1]:
-                self.buff.append(c) # h1
-                self.readState = ReadState_t.H1_STATE
-                # print("h1")
-                return False
-            self.reset()
-            return False
-        elif self.readState == ReadState_t.H1_STATE:
-            # c = ord(c)
-            self.buff.append(c) # s0
-            self.readState = ReadState_t.S0_STATE
-            self.payload_size = ord(c)
-            return False
-            # print("s0")
-        elif self.readState == ReadState_t.S0_STATE:
-            # c = ord(c)
-            self.buff.append(c) # s1
-            self.payload_size |= ord(c) << 8
-            # print(f">> payload size:", self.payload_size)
-            self.readState = ReadState_t.S1_STATE
-            return False
-            # printp("s1")
-            # print(f"size: {self.payload_size}")
-        elif self.readState == ReadState_t.S1_STATE:
-            # c = ord(c)
-            self.buff.append(c) # type
-            self.buffer_msgid = ord(c)
-            self.readState = ReadState_t.TYPE_STATE
-            return False
-            # printp("t")
-        elif self.readState == ReadState_t.TYPE_STATE:
-            self.buff.append(c) # data0
-            self.payload_size -= 1
-            self.readState = ReadState_t.DATA_STATE
-            # print("d0")
-            return False
-        elif self.readState == ReadState_t.DATA_STATE:
-            self.buff.append(c) # data1-dataN
-            self.payload_size -= 1
-            if self.payload_size == 0:
-                self.readState = ReadState_t.CS_STATE
-            return False
-        elif self.readState == ReadState_t.CS_STATE:
-            # c = ord(c)
-            self.buff.append(c) # cs
-            # cs = self.checksum(self.buff[2:-1])
-            self.readState = ReadState_t.NONE_STATE
-            return True
+                self.readState = ReadState.STATE_SZ0
+                print("h1")
+            else: self.reset()
+        elif self.readState == ReadState.STATE_SZ0:
+            self.readState = ReadState.STATE_SZ1
+            self.payload_size = c
+            print("s0")
+        elif self.readState == ReadState.STATE_SZ1:
+            self.payload_size |= c << 8
+            self.buff = self.payload_size * [0]
+            print(f"payload size:", self.payload_size)
+            self.readState = ReadState.STATE_ID
+        elif self.readState == ReadState.STATE_ID:
+            self.buffer_msgid = c
+            self.readState = ReadState.STATE_CS
+            print(f"id: {self.buffer_msgid}")
+        elif self.readState == ReadState.STATE_CS:
+            self.cs = c
+            self.readState = ReadState.STATE_DATA
+            print(f"cs: {self.cs}")
+        elif self.readState == ReadState.STATE_DATA:
+            self.buff[self.index] = c # data1-dataN
+            self.index += 1
+            if self.payload_size == self.index:
+                self.readState = ReadState.STATE_H0
+                print("done")
+                return self.buffer_msgid
 
-        return False
+        return 0

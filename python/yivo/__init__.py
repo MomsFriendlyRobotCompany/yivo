@@ -5,11 +5,12 @@
 ##############################################
 from importlib.metadata import version
 
-from .packet import Yivo
+from .packet import YivoPkt
 from .packet import Errors
 from .packet import checksum
 from .packet import num_fields
-from .packet import MsgInfo
+# from .packet import MsgInfo
+from .parser import YivoParser
 
 __copyright__ = 'Copyright (c) 2020 Kevin Walchko'
 __license__ = 'MIT'
