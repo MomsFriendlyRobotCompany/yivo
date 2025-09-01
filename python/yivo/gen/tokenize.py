@@ -1,10 +1,14 @@
+###############################################
+# The MIT License (MIT)
+# Copyright (c) 2020 Kevin Walchko
+# see LICENSE for full details
+##############################################
 import re
 from colorama import Fore
 from enum import Enum
 from .msg_parts import Field, Message, EnumField, Enumeration, Define
 from .msg_parts import dtypes, VarInfo
 
-# gID = 10
 
 class State(Enum):
   none = 0
@@ -24,12 +28,7 @@ field_re = re.compile(r"\s*(\w+\.)?([\w]+)\s+(\w+)\[?(\d+)?\]?\s*=?\s*(.+)?\s*;\
 const_re = re.compile(r"constant\s+(.+)")
 enum_value_re = re.compile(r'\s*(\w+)\s*=\s*(-?\d+)\s*;\s*(?:\/\/\s*(.*))?')
 comment_re = re.compile(r'^\s*//\s*(.*)')
-# array_re = re.compile(r'\s*\{([\d.,\-eE\s]+)?\}\s*')
 
-# def read_file(file_path):
-#     with open(file_path, 'r') as file:
-#         data = file.read()
-#     return data
 
 def parse_proto_file(file, verbose=False):
     # Initialize the dictionary to store the parsed contents

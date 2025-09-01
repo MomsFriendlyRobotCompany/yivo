@@ -27,9 +27,9 @@ Trying to standardize the way I access serial data from sensors and stuff.
 | Data     | `uint8_t[Size]` | payload data array                                |
 | Checksum | `uint8_t`       | XOR of Size, Type, and Data bytes                 |
 
-| 0 | 1 | 2 | 3 | 4 | ... | -1 |
-|---|---|---|---|---|-----|----|
-|`$`|`K`| L | H | T | ... | checksum |
+| 0 | 1 | 2 | 3 | 4 | 5  | 0-N |
+|---|---|---|---|---|----|-----|
+|`$`|`K`| L | H | T | CS | ... |
 
 ## Byte Conversions
 

@@ -72,7 +72,7 @@ typedef struct {
 } #}
 
 {# inline
-message_t {{ name }}_yivo_pack(const {{ name }}_t& msg) {
+message_t {{ name }}_ypkt_pack(const {{ name }}_t& msg) {
   message_t msg = yivo.pack({{ msgid }}, (uint8_t*)&msg, {{msg_size}});
   return msg;
 } #}
@@ -83,7 +83,7 @@ message_t {{ name }}_yivo_pack(const {{ name }}_t& msg) {
 static uint8_t yivo_buffer[msg_size + 7];
 
 inline
-message_t {{ name }}_yivo_pack(const {{ name }}_t& msg) {
+message_t {{ name }}_ypkt_pack(const {{ name }}_t& msg) {
   return yivo.pack({{ msgid }}, (uint8_t*)&msg, {{msg_size}});
 }
 

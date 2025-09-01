@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yivo"
-version = "2025.08.23.0"
+version = "2025.08.23.1"
 description = "Message serialization"
 authors = ["walchko <walchko@users.noreply.github.com>"]
 readme = "readme.md"
@@ -28,7 +28,7 @@ python = ">=3.10"
 colorama = "*"
 jinja2 = "*"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "*"
 
 [tool.poetry.scripts]

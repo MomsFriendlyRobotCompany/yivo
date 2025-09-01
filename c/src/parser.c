@@ -1,115 +1,122 @@
-#include "yivo/parser.h"
-#include "yivo/yivopkt.h"
+#include "yivo/yivo.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> // memcpy, memset
 
+#if 0
+  #define DEBUG(format, ...)         \
+    do {                             \
+      printf(format, ##__VA_ARGS__); \
+    } while (0)
+#else
+  #define DEBUG(format, ...)
+#endif
+
 typedef enum : uint8_t {
-  NONE_STATE, // 0
   H0_STATE,   // 1
   H1_STATE,   // 2
-  S0_STATE,   // 3
-  S1_STATE,   // 4
-  TYPE_STATE, // 5
-  DATA_STATE, // 6
-  CS_STATE    // 7
+  SZ0_STATE,  // 3
+  SZ1_STATE,  // 4
+  ID_STATE,   // 5
+  CS_STATE,   // 6
+  DATA_STATE, // 7
 } read_state_e;
 
-static void yivo_parser_reset(yivo_parser_t *y) {
-  y->state.payload_size = 0;
-  y->state.readState    = NONE_STATE;
-  y->state.buffer_msgid = 0;
-  y->p                  = 0;
-
-  memset(y->buffer, 0, y->buffer_size);
+void yivo_parse_reset(yivo_parser_t *y) {
+  // printf(">> yp_reset, pl: %p\n", y->payload);
+  if (y->payload != NULL) free(y->payload);
+  y->payload = NULL;
+  // printf(">> yp_reset, pl: %p\n", y->payload);
+  y->payload_size = 0;
+  y->readState    = H0_STATE;
+  y->buffer_msgid = 0;
+  y->index        = 0;
 }
 
-bool yivo_parse_init(yivo_parser_t *y, uint32_t size) {
-  if (y == NULL) return false;
-
-  y->buffer = (uint8_t *)malloc(size);
-  if (y->buffer == NULL) return false;
-  y->buffer_size = size;
-  yivo_parser_reset(y);
-
-  memset(y->buffer, 0, y->buffer_size);
-
-  return true;
+yivo_parser_t *yivo_parse_create() {
+  yivo_parser_t *y = (yivo_parser_t *)calloc(1, sizeof(yivo_parser_t));
+  DEBUG(">> parser_create payload: %p size: %u\n", y->payload, y->payload_size);
+  return y;
 }
 
 //
 // Read in one byte at a time, yivo keeps track of the state until it
 // finds a good message.
-// Returns: bool true - valid message, false - no message yet
+// Returns: valid message or 0
 uint8_t yivo_parse(yivo_parser_t *y, uint8_t c) {
-  parse_state_t *s = &y->state;
-  uint8_t ret      = 0;
-  switch (s->readState) {
-  case NONE_STATE:
-    if (c == YIVO_HEADER_0) {
-      yivo_parser_reset(y);
-      s->readState      = H0_STATE;
-      y->buffer[y->p++] = c; // h0
-    }
-    else s->readState = NONE_STATE; // this state will reset
-    break;
+  uint8_t *buff = y->payload;
+
+  switch (y->readState) {
   case H0_STATE:
-    if (c == YIVO_HEADER_1) {
-      s->readState      = H1_STATE;
-      y->buffer[y->p++] = c; // h1
+    if (c == YIVO_HEADER_0) {
+      yivo_parse_reset(y);
+      y->readState = H1_STATE;
+      DEBUG("START -----------\n");
+      DEBUG("H0: %c\n", (char)c);
     }
-    else s->readState = NONE_STATE; // this state will reset
+    // else y->readState = H0_STATE; // this state will reset
     break;
   case H1_STATE:
-    s->readState      = S0_STATE;
-    y->buffer[y->p++] = c; // size0
+    if (c == YIVO_HEADER_1) {
+      y->readState = SZ0_STATE;
+      DEBUG("H1: %c\n", (char)c);
+    }
+    else y->readState = H0_STATE; // this state will reset
     break;
-  case S0_STATE:
-    s->readState    = S1_STATE;
-    s->payload_size = (c << 8) | y->buffer[2];
-    // printf("payload size: %d\n", (int)s->payload_size);
-    y->buffer[y->p++] = c; // size1
+  case SZ0_STATE:
+    y->readState    = SZ1_STATE;
+    y->payload_size = c;
     break;
-  case S1_STATE:
-    s->readState      = TYPE_STATE;
-    y->buffer[y->p++] = c; // type or msg id
-    s->buffer_msgid   = c;
+  case SZ1_STATE:
+    y->readState = ID_STATE;
+    y->payload_size |= (c << 8);
+    if (y->payload != NULL) free(y->payload);
+    y->payload = (uint8_t *)calloc(1, y->payload_size);
+    DEBUG("SIZE: %u y->payload: %p\n", y->payload_size, y->payload);
     break;
-  case TYPE_STATE:
-    s->readState      = DATA_STATE;
-    y->buffer[y->p++] = c; // data0
-    break;
-  case DATA_STATE:
-    y->buffer[y->p++] = c; // data1-dataN
-    // if ((buffer.size() - 5) == y->payload_size) y->readState = CS_STATE;
-    // printf("payload size: %d %d\n", y->p, (int)s->payload_size);
-    if ((y->p - 5) == s->payload_size) s->readState = CS_STATE;
+  case ID_STATE:
+    y->readState    = CS_STATE;
+    y->buffer_msgid = c;
+    DEBUG("ID: %u\n", c);
     break;
   case CS_STATE:
-    y->buffer[y->p++] = c; // checksum
-    // check if cs is correct
-    uint8_t cs = 0;
-    // for (size_t i=2; i < buffer.size()-1; ++i) cs ^= y->buffer[i];
-    for (size_t i = 2; i < s->payload_size + 5; ++i)
-      cs ^= y->buffer[i];
-    if (cs == c) {
-      ret = s->buffer_msgid;
-      // printf("good checksum\n");
+    y->readState = DATA_STATE;
+    y->cs        = c;
+    y->index     = 0;
+    DEBUG("CS: %u\n", c);
+    break;
+  case DATA_STATE:
+    buff[y->index++] = c; // data1-dataN
+    DEBUG("DATA[%u]: 0x%02X\n", y->index, c);
+    if ((y->index - 0) == y->payload_size) {
+      y->readState = H0_STATE;
+      return y->buffer_msgid;
     }
-    // else printf(" %d != %d\n", (int)c, (int)cs);
-    s->readState = NONE_STATE;
     break;
   }
 
-  return ret;
+  return 0;
 }
 
-yivopkt_t *yivo_parse_get(yivo_parser_t *y) {
-  yivopkt_t *ret = (yivopkt_t *)malloc(sizeof(yivopkt_t));
-  uint32_t size  = y->state.payload_size + 6;
-  if (y->p < size) return NULL;
-  uint32_t i       = y->p - size;
-  ret->buffer      = &y->buffer[i];
-  ret->buffer_size = size;
-  return ret;
+// - copies parser.payload over to buffer
+// - frees parser.payload
+int32_t yivo_parse_get(yivo_parser_t *y, uint8_t *buffer, uint16_t size) {
+  if (buffer == NULL) return YIVO_PARSER_NULL;
+  if (y->payload == NULL) return YIVO_PKT_NULL;
+  if (size != y->payload_size) return YIVO_SIZE_ERROR;
+
+  memcpy(buffer, y->payload, size);
+  free(y->payload);
+  y->payload = NULL;
+  DEBUG(">> parse_get y->pl: %p\n", y->payload);
+
+  return 0;
 }
+
+// bool yivo_parse_init(yivo_parser_t *y) {
+//   if (y == NULL) return false;
+//   yivo_parse_reset(y);
+//   DEBUG(">> parser_create payload: %p size: %u\n", y->payload, y->payload_size);
+
+//   return true;
+// }

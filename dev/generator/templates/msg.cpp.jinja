@@ -62,7 +62,7 @@ struct __attribute__((packed)) {{ name }}_t {
 } #}
 
 inline
-message_t {{ name }}_yivo_pack(const {{ name }}_t& msg) {
+message_t {{ name }}_ypkt_pack(const {{ name }}_t& msg) {
   message_t msg = yivo.pack({{ msgid }}, (uint8_t*)&msg, {{msg_size}});
   return msg;
 }

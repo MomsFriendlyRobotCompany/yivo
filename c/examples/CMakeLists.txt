@@ -2,7 +2,8 @@
 
 
 list(APPEND apps
-    main
+    simple
+    multi
     crc
 )
 

@@ -1,28 +1,32 @@
+###############################################
+# The MIT License (MIT)
+# Copyright (c) 2020 Kevin Walchko
+# see LICENSE for full details
+##############################################
 from collections import namedtuple
 from colorama import Fore
 import struct
 import re
-# from pprint import pprint
-# from format import var_types
+
 VarInfo = namedtuple("VarInfo","c py size fmt complex")
 
 array_re = re.compile(r'\s*\{([\d.,\-eE\s]+)?\}\s*')
 
 dtypes = {
-  "std": {
-    "uint8": VarInfo("uint8_t", "int",1, "B", False),
-    "uint16": VarInfo("uint16_t", "int",2, "H", False),
-    "uint32": VarInfo("uint32_t", "int", 4, "I", False),
-    "uint64": VarInfo("uint64_t", "int",8, "Q", False),
-    "int8": VarInfo("int8_t", "int",1, "b", False),
-    "int16": VarInfo("int16_t", "int", 2, "h", False),
-    "int32": VarInfo("int32_t", "int", 4, "i", False),
-    "int64": VarInfo("int64_t", "int", 8, "q", False),
-    "float": VarInfo("float", "float", 4, "f", False),
-    "double": VarInfo("double", "float", 8, "d", False),
-    "char": VarInfo("char", "int",1, "c", False),
-    "bool": VarInfo("bool", "bool",1, "?", False),
-  }
+    "std": {
+        "uint8": VarInfo("uint8_t", "int",1, "B", False),
+        "uint16": VarInfo("uint16_t", "int",2, "H", False),
+        "uint32": VarInfo("uint32_t", "int", 4, "I", False),
+        "uint64": VarInfo("uint64_t", "int",8, "Q", False),
+        "int8": VarInfo("int8_t", "int",1, "b", False),
+        "int16": VarInfo("int16_t", "int", 2, "h", False),
+        "int32": VarInfo("int32_t", "int", 4, "i", False),
+        "int64": VarInfo("int64_t", "int", 8, "q", False),
+        "float": VarInfo("float", "float", 4, "f", False),
+        "double": VarInfo("double", "float", 8, "d", False),
+        "char": VarInfo("char", "int",1, "c", False),
+        "bool": VarInfo("bool", "bool",1, "?", False),
+    }
 }
 
 class EnumField:
@@ -220,63 +224,3 @@ class Message:
 
 
 
-
-
-# class MsgParts:
-#     """
-#     Breaks a message format appart and stores the results so it can be
-#     converted into other languages. Supported languages:
-#     - python
-#     - C/C++
-#     """
-#     def __init__(self):
-#         self.comments = []  # comments in body of message prototype
-#         self.fields = []    # variables in message
-#         self.includes = []  # included message headers/modules
-#         self.c_funcs = []   # custom C functions
-#         self.py_funcs = []  # custom Python functions
-#         self.enums = []     # enums
-#         self.msg_size = 0   # size of message in bytes
-#         self.file = None    # filename for naming the message
-#         self.id = 0         # message id number
-#         self.namespace = None # cpp namespace
-
-#     def __repr__(self):
-#         return str(self)
-
-#     def __str__(self):
-#         ret = f"{Fore.YELLOW}------------------------------\n"
-#         ret += f"File: {self.file}\n"
-#         if self.namespace is not None:
-#             ret += f"Namespace: {self.namespace}\n"
-#         ret += f"------------------------------\n{Fore.RESET}"
-#         ret += f"{Fore.CYAN}Comments:\n{Fore.RESET}"
-#         ret += f"{Fore.GREEN}"
-#         for c in self.comments:
-#             ret += f" {c}\n"
-#         ret += f"{Fore.RESET}"
-
-#         ret += f"\n{Fore.CYAN}Fields:\n{Fore.RESET}"
-#         for f in self.fields:
-#             ret += f" {f}\n"
-
-#         ret += f"\n{Fore.CYAN}Python Functions:\n{Fore.RESET}"
-#         for f in self.py_funcs:
-#             ret += f" {f}\n"
-
-#         ret += f"\n{Fore.CYAN}C Functions:\n{Fore.RESET}"
-#         for f in self.c_funcs:
-#             ret += f" {f}\n"
-
-#         ret += f"\n{Fore.CYAN}Includes:\n{Fore.RESET}"
-#         ret += f"{Fore.BLUE}"
-#         for i in self.includes:
-#             ret += f" {i}\n"
-#         ret += f"{Fore.RESET}\n"
-
-#         ret += f"\n{Fore.CYAN}Enums:\n{Fore.RESET}"
-#         for f in self.enums:
-#             ret += f" {f}\n"
-
-#         ret += f"{Fore.CYAN}\nMessage Size:{Fore.RESET} {self.msg_size}\n"
-#         return ret

@@ -27,8 +27,24 @@ SOFTWARE.
   #define __YIVO_HPP__
 #endif
 
-// #include <stdint.h>
-// #include <string.h> // std::memcpy
+#define YIVO_HEADER_0 '$'
+#define YIVO_HEADER_1 'K'
+
+#define YIVO_PARSER_NULL -1 // parser or payload
+#define YIVO_PKT_NULL -2    // pkt or data
+#define YIVO_SRC_NULL -3
+#define YIVO_SIZE_ERROR -4
+#define YIVO_PKT_HEADER_ERR -5
+#define YIVO_PKT_ID_ERR -6
+#define YIVO_PKT_CS_ERR -7
+
+#include <stdbool.h>
+#include <stdint.h>
+
+#define ymsg struct __attribute__((packed))
+
+typedef ymsg { int a; }
+bob_t;
+
 #include "yivo/parser.h"
 #include "yivo/yivopkt.h"
-// #include "utils.hpp"
