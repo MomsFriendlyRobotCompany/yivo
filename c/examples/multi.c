@@ -11,18 +11,16 @@
 static uint8_t buffer[BUFFER_SIZE];
 
 // typedef struct __attribute__((packed)) {
-typedef ymsg {
+typedef struct YMSG {
   int a, b;
-}
-test_t;
+} test_t;
 
 // typedef struct __attribute__((packed)) {
-typedef ymsg {
+typedef struct YMSG {
   int i;
   float f;
   char c;
-}
-test2_t;
+} test2_t;
 
 int main() {
   bool ok;
@@ -70,8 +68,7 @@ int main() {
       int err = yivo_parse_get(pars, (uint8_t *)&ans, sizeof(test_t));
       if (err < 0) printf("error: %d\n", err);
       else printf("test_t[%u]: %d %d\n", mid, ans.a, ans.b);
-    }
-    else if (mid == 20) {
+    } else if (mid == 20) {
       // printf("Found msg id: %d\n", (int)mid);
       test2_t ans;
       int err = yivo_parse_get(pars, (uint8_t *)&ans, sizeof(test2_t));

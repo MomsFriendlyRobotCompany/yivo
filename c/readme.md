@@ -42,6 +42,21 @@ for (int i=0; i<BUFFER_SIZE; ++i) {
 }
 ```
 
+## Messages
+
+You want to avoid padding, so things are easier to unpack. The very long, but
+usefull command `__attribute__((packed))` does this. There is a simple define
+(yivo message or `YMSG`) that inserts this and is shorter.
+
+```c
+// YMSG -> __attribute__((packed))
+// this is shorter ... you don't have to use it
+typedef struct YMSG {
+  int a;
+  int b;
+} test_t;
+```
+
 ## Build
 
 For testing, you need to use `scruffy` and do `ln -s ~/github/scruffy scruffy`

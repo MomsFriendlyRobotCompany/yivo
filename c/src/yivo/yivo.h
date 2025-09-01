@@ -41,10 +41,7 @@ SOFTWARE.
 #include <stdbool.h>
 #include <stdint.h>
 
-#define ymsg struct __attribute__((packed))
-
-typedef ymsg { int a; }
-bob_t;
+#define YMSG __attribute__((packed))
 
 #include "yivo/parser.h"
 #include "yivo/yivopkt.h"

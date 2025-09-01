@@ -17,18 +17,16 @@
 
 uint8_t buffer[BUFFER_SIZE];
 
-typedef ymsg {
+typedef struct YMSG {
   int8_t a;   // 1
   uint32_t b; // 4
-}
-msg_t; // 6+1+4 = 11
+} msg_t;      // 6+1+4 = 11
 
-typedef ymsg {
+typedef struct YMSG {
   int i;   // 4
   float f; // 4
   char c;  // 1
-}
-msg2_t; // 6+4+4+1 = 15
+} msg2_t;  // 6+4+4+1 = 15
 
 // This tests the packer correctly packing the
 // binary message
@@ -118,8 +116,7 @@ TEST(yivo, yivo_parser_t) {
       EXPECT_EQ(err, 0);
       EXPECT_EQ(aa.a, a.a);
       EXPECT_EQ(aa.b, a.b);
-    }
-    else if (msgid == 20) {
+    } else if (msgid == 20) {
       msgs_found += 1;
       msg2_t bb;
       err = yivo_parse_get(pars, (uint8_t *)&bb, sizeof(msg2_t));

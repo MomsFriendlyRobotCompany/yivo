@@ -17,9 +17,9 @@
 #define YIVO_OVERHEAD 6 // h0,h1,LN,HN,ID, ..., CS
 
 #if 0
-  #define DEBUG(format, ...)         \
-    do {                             \
-      printf(format, ##__VA_ARGS__); \
+  #define DEBUG(format, ...)                                                                                                                                                                           \
+    do {                                                                                                                                                                                               \
+      printf(format, ##__VA_ARGS__);                                                                                                                                                                   \
     } while (0)
 #else
   #define DEBUG(format, ...)

@@ -4,10 +4,9 @@
 
 #include <yivo/yivo.h>
 
-typedef ymsg {
+typedef struct YMSG {
   int a, b;
-}
-test_t;
+} test_t;
 
 int main() {
   bool ok;

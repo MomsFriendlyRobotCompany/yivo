@@ -4,9 +4,9 @@
 #include <string.h> // memcpy, memset
 
 #if 0
-  #define DEBUG(format, ...)         \
-    do {                             \
-      printf(format, ##__VA_ARGS__); \
+  #define DEBUG(format, ...)                                                                                                                                                                           \
+    do {                                                                                                                                                                                               \
+      printf(format, ##__VA_ARGS__);                                                                                                                                                                   \
     } while (0)
 #else
   #define DEBUG(format, ...)
@@ -60,8 +60,7 @@ uint8_t yivo_parse(yivo_parser_t *y, uint8_t c) {
     if (c == YIVO_HEADER_1) {
       y->readState = SZ0_STATE;
       DEBUG("H1: %c\n", (char)c);
-    }
-    else y->readState = H0_STATE; // this state will reset
+    } else y->readState = H0_STATE; // this state will reset
     break;
   case SZ0_STATE:
     y->readState    = SZ1_STATE;
