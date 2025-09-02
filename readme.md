@@ -24,8 +24,8 @@ Trying to standardize the way I access serial data from sensors and stuff.
 | Header   | `uint8_t[2]`    | default `$K`                                      |
 | Size     | `uint16_t`      | 0-65,535 bytes, stored as [L,H] => `(H << 8) | L` |
 | Type     | `uint8_t`       | 255 message IDs, `0` is not allowed as an ID      |
+| Checksum | `uint8_t`       | XOR of all Data bytes                             |
 | Data     | `uint8_t[Size]` | payload data array                                |
-| Checksum | `uint8_t`       | XOR of N Data bytes                               |
 
 | 0 | 1 | 2 | 3 | 4 | 5  | 0 - N|
 |---|---|---|---|---|----|------|
