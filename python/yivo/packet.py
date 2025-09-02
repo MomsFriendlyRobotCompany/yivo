@@ -7,7 +7,7 @@ from struct import Struct
 from enum import IntEnum, Enum, unique # need for Errors
 from .parser import YivoParser
 from collections import namedtuple
-from collections import UserDict
+# from collections import UserDict
 from colorama import Fore
 
 def make_Struct(payload):
@@ -109,7 +109,8 @@ def checksum_payload(payload):
     return cs & 0xFF
 
 def chunk(msg):
-    """Breaks up a message into chunks:
+    """
+    Breaks up a message into chunks:
     - size: payload size only
     - msgid: message id
     - payload: payload data serialized
@@ -118,31 +119,24 @@ def chunk(msg):
     size = msg[YivoParts.SZ0] + (msg[YivoParts.SZ1] << 8) # messages sent little endian
     msgid = msg[YivoParts.ID]
     cs = msg[YivoParts.CS]
-
-    if size == 0:
-        payload = None
-    else:
-        payload = msg[YivoParts.PL:]
+    payload = msg[YivoParts.PL:]
 
     return size, msgid, payload, cs
 
-def num_fields(data):
-    """Returns the number of fields in a namedtuple message"""
-    return len(data._fields)
+# def num_fields(data):
+#     """Returns the number of fields in a namedtuple message"""
+#     return len(data._fields)
 
 class YivoPkt:
     """
     [ 0, 1, 2, 3,4, 5, ...]
     [h0,h1,LN,HN,T,CS, ...]
-    Header: h0, h1
+    Header: h0, h1 = b"$K"
     N = (HN << 8) + LN, max data bytes is 65,536 Bytes
       HN: High Byte
       LN: Low Byte
     T: packet type or MsgID
-    header_fmt = Struct("2cH2BB")
-    header = b"$K"
-    pack_cs = Struct("<B")
-    msgInfo = None
+    header_fmt = Struct("2cHBB")
     """
 
     def __init__(self, msg_id, fmt, obj):
@@ -177,6 +171,7 @@ class YivoPkt:
     def dump(self, msg):
         if msg is None:
             return
+            
         size, msgid, payload, cs = chunk(msg)
 
         m = [x for x in msg]

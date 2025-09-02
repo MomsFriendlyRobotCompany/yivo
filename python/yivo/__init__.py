@@ -7,8 +7,8 @@ from importlib.metadata import version
 
 from .packet import YivoPkt
 from .packet import Errors
-from .packet import checksum
-from .packet import num_fields
+from .packet import checksum, checksum_payload
+# from .packet import num_fields
 # from .packet import MsgInfo
 from .parser import YivoParser
 
