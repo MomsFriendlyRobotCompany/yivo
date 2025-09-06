@@ -179,7 +179,7 @@ class Message:
     self.size = 0
     self.comments = []
     self.extlibs = set()
-    self.fmt = ">"
+    self.fmt = "<"
 
   def __repr__(self):
     return str(self)
@@ -218,6 +218,8 @@ class Message:
     ret.append(" ")
 
     return "\n".join(ret)
+
+
 
 
 

@@ -62,6 +62,20 @@ typedef struct YMSG {
 For testing, you need to use `scruffy` and do `ln -s ~/github/scruffy scruffy`
 in `scruffy/extlibs` folder.
 
+## ToDo
+
+Grok suggested:
+
+- [ ] In `parse.c` incrementally calculate checksum
+    - If checksum fails, reset parser and return 0
+    - Enforce msg_id = 0 as an invalid, reset parser and return 0 
+- [ ] Fix mix of snake case and cammel case
+- [ ] Instead of XOR for checksum, upgrade to CRC-8
+- [ ] Use a fixed buffer instead of a dynamic buffer for messages
+- [ ] Add a function for parsing that accepts a fixed buffer in addition
+    to the streaming byte-by-byte function
+- [ ] Add ID and size to checksum
+
 # MIT License
 
 **Copyright (c) 2020 Mom's Friendly Robot Company**

@@ -129,7 +129,7 @@ def parse_proto_file(file, verbose=False):
                 msgname.lower(),
                 msgname,
                 newType.size,
-                newType.fmt.replace('>',''),
+                newType.fmt.replace('<',''),
                 True)
             elif state == State.enum:
                 # pass
@@ -201,6 +201,7 @@ def parse_proto_file(file, verbose=False):
 
     for m in proto_dict["messages"]:
       m.calcsize()
+      m.fmt = combine_consecutive(m.fmt)
 
     # for t in proto_dict["types"]:
     #   t.calcsize()
@@ -215,3 +216,28 @@ def parse_proto_file(file, verbose=False):
             
 
     return proto_dict
+
+def combine_consecutive(s):
+    if not s:
+        return ""
+    
+    result = []
+    count = 1
+    current_char = s[0]
+    
+    for i in range(1, len(s)):
+        if s[i] == current_char:
+            count += 1
+        else:
+            if count > 1:
+                result.append(str(count))
+            result.append(current_char)
+            current_char = s[i]
+            count = 1
+    
+    # Append the last character and its count (if > 1)
+    if count > 1:
+        result.append(str(count))
+    result.append(current_char)
+    
+    return "".join(result)
