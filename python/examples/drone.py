@@ -3,7 +3,7 @@
 ###############################################################################
 from enum import IntEnum
 from collections import namedtuple
-from dataclasses import dataclass
+
 
 
 
@@ -71,36 +71,16 @@ class Base:
         return tuple(self.flatten(self.astuple()))
 
 
-# def fmt(a):
-#    return a.__yivo__()[0]
-
-# def sizeof(a):
-#    return a.__yivo__()[1]
-
-# def cls(a):
-#    
-#    return a.__class__
-
-# def msg_id(a):
-#    return a.__yivo__()[2]
-
-
-
-
-
 class vec2f_t (Base):
   """
   vec2f_t
   """
-
-  
-
   def __init__(self):
     self.x =0
     self.y =0
 
     self.id = 0
-    self.fmt = ">ff"
+    self.fmt = "<2f"
     self.size = 8
     self.name = "vec2f_t"
 
@@ -108,7 +88,7 @@ class vec2f_t (Base):
     return (self.x,self.y,)
 
   def get_info(self):
-    return yivo_info(0, ">ff", 8, "vec2f_t")
+    return yivo_info(0, "<2f", 8, "vec2f_t")
 
   def __str__(self):
     s = f"{ self.name }("
@@ -118,27 +98,17 @@ class vec2f_t (Base):
     s+="\b\b)"
     return s
 
-  
-    
-    
-    
-    
-
-
 class vec3f_t (Base):
   """
   vec3f_t
   """
-
-  
-
   def __init__(self):
     self.x =0.0
     self.y =0.0
     self.z =0.0
 
     self.id = 0
-    self.fmt = ">fff"
+    self.fmt = "<3f"
     self.size = 12
     self.name = "vec3f_t"
 
@@ -146,7 +116,7 @@ class vec3f_t (Base):
     return (self.x,self.y,self.z,)
 
   def get_info(self):
-    return yivo_info(0, ">fff", 12, "vec3f_t")
+    return yivo_info(0, "<3f", 12, "vec3f_t")
 
   def __str__(self):
     s = f"{ self.name }("
@@ -156,20 +126,10 @@ class vec3f_t (Base):
     s+="\b\b)"
     return s
 
-  
-    
-    
-    
-    
-
-
 class quaternion_t (Base):
   """
   quaternion_t
   """
-
-  
-
   def __init__(self):
     self.w =1
     self.x =0
@@ -177,7 +137,7 @@ class quaternion_t (Base):
     self.z =0
 
     self.id = 0
-    self.fmt = ">ffff"
+    self.fmt = "<4f"
     self.size = 16
     self.name = "quaternion_t"
 
@@ -185,7 +145,7 @@ class quaternion_t (Base):
     return (self.w,self.x,self.y,self.z,)
 
   def get_info(self):
-    return yivo_info(0, ">ffff", 16, "quaternion_t")
+    return yivo_info(0, "<4f", 16, "quaternion_t")
 
   def __str__(self):
     s = f"{ self.name }("
@@ -195,26 +155,16 @@ class quaternion_t (Base):
     s+="\b\b)"
     return s
 
-  
-    
-    
-    
-    
-
-
 class header (Base):
   """
   header
   """
-
-  
-
   def __init__(self):
     self.timestamp = int() 
     self.frame = int() 
 
     self.id = 0
-    self.fmt = ">Qi"
+    self.fmt = "<Qi"
     self.size = 12
     self.name = "header"
 
@@ -222,7 +172,7 @@ class header (Base):
     return (self.timestamp,self.frame,)
 
   def get_info(self):
-    return yivo_info(0, ">Qi", 12, "header")
+    return yivo_info(0, "<Qi", 12, "header")
 
   def __str__(self):
     s = f"{ self.name }("
@@ -232,20 +182,10 @@ class header (Base):
     s+="\b\b)"
     return s
 
-  
-    
-    
-    
-    
-
-
 class imuf_t (Base):
   """
   imuf_t
   """
-
-  
-
   def __init__(self):
     self.a = vec3f_t() 
     self.g = vec3f_t() 
@@ -253,7 +193,7 @@ class imuf_t (Base):
     self.temperature = float() 
 
     self.id = 100
-    self.fmt = ">ffffffffff"
+    self.fmt = "<10f"
     self.size = 40
     self.name = "imuf_t"
 
@@ -261,7 +201,7 @@ class imuf_t (Base):
     return (self.a,self.g,self.m,self.temperature,)
 
   def get_info(self):
-    return yivo_info(100, ">ffffffffff", 40, "imuf_t")
+    return yivo_info(100, "<10f", 40, "imuf_t")
 
   def __str__(self):
     s = f"{ self.name }("
@@ -271,26 +211,16 @@ class imuf_t (Base):
     s+="\b\b)"
     return s
 
-  
-    
-    
-    
-    
-
-
 class press_t (Base):
   """
   press_t
   """
-
-  
-
   def __init__(self):
     self.pressure = float() 
     self.temperature = float() 
 
     self.id = 101
-    self.fmt = ">ff"
+    self.fmt = "<2f"
     self.size = 8
     self.name = "press_t"
 
@@ -298,7 +228,7 @@ class press_t (Base):
     return (self.pressure,self.temperature,)
 
   def get_info(self):
-    return yivo_info(101, ">ff", 8, "press_t")
+    return yivo_info(101, "<2f", 8, "press_t")
 
   def __str__(self):
     s = f"{ self.name }("
@@ -308,27 +238,17 @@ class press_t (Base):
     s+="\b\b)"
     return s
 
-  
-    
-    
-    
-    
-
-
 class pose_t (Base):
   """
   pose_t
   """
-
-  
-
   def __init__(self):
     self.pos = vec3f_t() 
     self.vel = vec3f_t() 
     self.q = quaternion_t() 
 
     self.id = 102
-    self.fmt = ">ffffffffff"
+    self.fmt = "<10f"
     self.size = 40
     self.name = "pose_t"
 
@@ -336,7 +256,7 @@ class pose_t (Base):
     return (self.pos,self.vel,self.q,)
 
   def get_info(self):
-    return yivo_info(102, ">ffffffffff", 40, "pose_t")
+    return yivo_info(102, "<10f", 40, "pose_t")
 
   def __str__(self):
     s = f"{ self.name }("
@@ -346,26 +266,16 @@ class pose_t (Base):
     s+="\b\b)"
     return s
 
-  
-    
-    
-    
-    
-
-
 class calibrate_t (Base):
   """
   calibrate_t
   This is a calibration command
   """
-
-  
-
   def __init__(self):
     self.cal = int() 
 
     self.id = 103
-    self.fmt = ">i"
+    self.fmt = "<i"
     self.size = 4
     self.name = "calibrate_t"
 
@@ -373,7 +283,7 @@ class calibrate_t (Base):
     return (self.cal,)
 
   def get_info(self):
-    return yivo_info(103, ">i", 4, "calibrate_t")
+    return yivo_info(103, "<i", 4, "calibrate_t")
 
   def __str__(self):
     s = f"{ self.name }("
@@ -383,27 +293,17 @@ class calibrate_t (Base):
     s+="\b\b)"
     return s
 
-  
-    
-    
-    
-    
-
-
 class cal_params_t (Base):
   """
   cal_params_t
   This is the result of a calibration command
   """
-
-  
-
   def __init__(self):
     self.cal = float() 
     self.sensor = int() 
 
     self.id = 104
-    self.fmt = ">12fi"
+    self.fmt = "<12fi"
     self.size = 52
     self.name = "cal_params_t"
 
@@ -411,7 +311,7 @@ class cal_params_t (Base):
     return (self.cal,self.sensor,)
 
   def get_info(self):
-    return yivo_info(104, ">12fi", 52, "cal_params_t")
+    return yivo_info(104, "<12fi", 52, "cal_params_t")
 
   def __str__(self):
     s = f"{ self.name }("
@@ -420,9 +320,3 @@ class cal_params_t (Base):
       s+=f"{k}: {v}, "
     s+="\b\b)"
     return s
-
-  
-    
-    
-    
-    

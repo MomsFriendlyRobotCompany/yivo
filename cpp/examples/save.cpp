@@ -21,7 +21,7 @@ int main() {
   Msg_t msg{63,64,65,66}; // ?@AB
 
   // Parser yivo;
-  yivopkt_t p;
+  ypkt_t p;
   p.pack(10, reinterpret_cast<uint8_t *>(&msg), sizeof(Msg_t));
 
   cout << "Msg[" << sizeof(p) << ']' << ": ";

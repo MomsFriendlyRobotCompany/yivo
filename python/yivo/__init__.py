@@ -6,11 +6,9 @@
 from importlib.metadata import version
 
 from .packet import YivoPkt
-from .packet import Errors
-from .packet import checksum, checksum_payload
-# from .packet import num_fields
-# from .packet import MsgInfo
+# from .packet import Errors
 from .parser import YivoParser
+from .crc8 import calc_checksum
 
 __copyright__ = 'Copyright (c) 2020 Kevin Walchko'
 __license__ = 'MIT'

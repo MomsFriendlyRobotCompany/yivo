@@ -1,21 +1,30 @@
 
 #include <string.h> // memset, memcpy
-#include ".h"
+#include "ymsgs_drone.h"
 
 
 
 void vec2f_init(vec2f_t *msg) {
   memset(msg, 0, DRONE_VEC2F_SIZE);
+  msg->x = 0; 
+  msg->y = 0; 
   
 }
 
 void vec3f_init(vec3f_t *msg) {
   memset(msg, 0, DRONE_VEC3F_SIZE);
+  msg->x = 0.0; 
+  msg->y = 0.0; 
+  msg->z = 0.0; 
   
 }
 
 void quaternion_init(quaternion_t *msg) {
   memset(msg, 0, DRONE_QUATERNION_SIZE);
+  msg->w = 1; 
+  msg->x = 0; 
+  msg->y = 0; 
+  msg->z = 0; 
   
 }
 

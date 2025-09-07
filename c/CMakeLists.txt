@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
-PROJECT(yivo VERSION "2023.08.27" LANGUAGES C)
+PROJECT(yivo VERSION "2025.09.06" LANGUAGES C)
 
-set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD 17)
 # set(CMAKE_C_STANDARD_REQUIRED ON)
 # set(CMAKE_C_EXTENSIONS ON)
 
@@ -21,7 +21,7 @@ if(PROJECT_IS_TOP_LEVEL)
   message(STATUS " ${PROC}")
   message(STATUS "-------------------------------------")
 
-  set(BUILD_EXAMPLES ON)
+  set(BUILD_EXAMPLES OFF)
   set(BUILD_SCRUFFY ON)
 else()
   message(STATUS "-> ${PROJECT_NAME} is submodule")
@@ -31,7 +31,7 @@ endif()
 
 add_library(${PROJECT_NAME} 
     src/yivopkt.c
-    src/parser.c
+    src/yivopars.c
 )
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
 

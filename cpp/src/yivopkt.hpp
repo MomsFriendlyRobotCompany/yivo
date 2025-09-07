@@ -38,24 +38,24 @@ constexpr uint16_t YIVO_ID = 4;
 constexpr uint16_t YIVO_PL = 5;
 constexpr uint16_t YIVO_OVERHEAD = 6; // h0,h1,LN,HN,ID, ..., CS
 
-class yivopkt_t {
+class ypkt_t {
 
   uint8_t* buffer{nullptr};
   uint16_t buffer_size{0}; // payload_size + 6
 
   public:
-  yivopkt_t() {}
+  ypkt_t() {}
 
-  yivopkt_t(const yivopkt_t&) = delete;
-  // yivopkt_t(const yivopkt_t&&) = delete;
-  yivopkt_t(const yivopkt_t&& p) { fill(p.data(), p.size()); }
-  yivopkt_t& operator=(const yivopkt_t&) = delete;
-  // void operator=(const yivopkt_t& p) {
+  ypkt_t(const ypkt_t&) = delete;
+  // ypkt_t(const ypkt_t&&) = delete;
+  ypkt_t(const ypkt_t&& p) { fill(p.data(), p.size()); }
+  ypkt_t& operator=(const ypkt_t&) = delete;
+  // void operator=(const ypkt_t& p) {
   //   fill(p.data(), p.size());
   //   // return *this;
   // }
 
-  ~yivopkt_t() {
+  ~ypkt_t() {
     if (buffer != nullptr) delete[] buffer;
     // printf("del\n");
   }
@@ -69,7 +69,7 @@ class yivopkt_t {
   /*
   msgid: message ID (1-255), 0 is not allowed
   data: buffer containing payload data to be sent
-  sz: size of payload to be sent, yivopkt_t.size() == (payload_size + 6)
+  sz: size of payload to be sent, ypkt_t.size() == (payload_size + 6)
   */
   void pack(const uint8_t msgid, uint8_t* data, const uint16_t len) {
     if (data == nullptr) return;
@@ -141,6 +141,6 @@ class yivopkt_t {
     return (uint8_t)(cs & 0x000000FF);
   }
 
-}; // end class yivopkt_t
+}; // end class ypkt_t
 
 } // end namespace yivo

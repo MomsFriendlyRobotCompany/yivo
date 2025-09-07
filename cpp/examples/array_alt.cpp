@@ -10,15 +10,15 @@ using namespace std;
 // typedef uint8_t* msg_t;
 
 
-class yivopkt_t {
+class ypkt_t {
   public:
-  yivopkt_t() {}
+  ypkt_t() {}
 
-  yivopkt_t(const yivopkt_t&) = delete;
-  yivopkt_t(const yivopkt_t&&) = delete;
-  yivopkt_t& operator=(const yivopkt_t&) = delete;
+  ypkt_t(const ypkt_t&) = delete;
+  ypkt_t(const ypkt_t&&) = delete;
+  ypkt_t& operator=(const ypkt_t&) = delete;
 
-  ~yivopkt_t() { if (buffer != nullptr) delete[] buffer; printf("del\n"); }
+  ~ypkt_t() { if (buffer != nullptr) delete[] buffer; printf("del\n"); }
 
   void pack(uint8_t msgid, uint8_t* data, uint16_t len) {
     if (data == nullptr) return;
@@ -75,7 +75,7 @@ class yivopkt_t {
 };
 
 
-void p2(const yivopkt_t& m) {
+void p2(const ypkt_t& m) {
   // for (size_t i=0; i<5; ++i) printf("%u\n", m[i]);
 
   printf("p2: ");
@@ -90,7 +90,7 @@ void p2(const yivopkt_t& m) {
 int main() {
   uint8_t data[DATA_SIZE];
   for (int i=0; i<DATA_SIZE; i++) data[i] = i;
-  yivopkt_t m;
+  ypkt_t m;
   m.pack(10, data, sizeof(data));
   p2(m);
 

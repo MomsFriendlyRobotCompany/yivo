@@ -26,42 +26,18 @@ SOFTWARE.
 #include <stdbool.h>
 #include <stdint.h>
 
-// #define YIVO_HEADER_0 '$'
-// #define YIVO_HEADER_1 'K'
-// #define YIVO_H0 0
-// #define YIVO_H1 1
-// #define YIVO_LN 2
-// #define YIVO_HN 3
-// #define YIVO_ID 4
-// #define YIVO_PL 5
-// #define YIVO_OVERHEAD 6 // h0,h1,LN,HN,ID, ..., CS
-
-// #define YIVO_PTR_NULL -1
-// #define YIVO_BUFFER_NULL -2
-// #define YIVO_INVALID_HEADER -3
-// #define YIVO_INVALID_CHECKSUM -4
-// #define YIVO_EXCEED_BUFFER_SIZE -5
-// #define YIVO_PTR_NULL -1
-// #define YIVO_PTR_NULL -1
-
-// #define YIVO_PARSER_PL_NULL -1
-// #define YIVO_PKT_NULL -2
-// #define YIVO_SIZE_ERROR -3
-
 typedef struct {
   uint16_t size; // entire message: payload_size + header
   uint8_t *data; // entire message: header + payload
-} yivopkt_t;
+  uint8_t msg_id;
+} ypkt_t;
 
-// bool ypkt_init(yivopkt_t *y, uint16_t size);
-// yivopkt_t *ypkt_init(uint16_t size);
-yivopkt_t *ypkt_create(uint16_t size);
-bool ypkt_free(yivopkt_t *y);
-int ypkt_pack(yivopkt_t *y, const uint8_t msgid, uint8_t *data,
-              const uint16_t len);
-// int32_t ypkt_unpack(yivopkt_t *y, void *dst);
-// inline uint8_t yivo_msg_id(yivopkt_t *y) { return y->buffer[YIVO_ID]; }
-// inline uint16_t yivo_payload_size(yivopkt_t *y) {
-//   return ((uint16_t)y->buffer[YIVO_HN] << 8) | y->buffer[YIVO_LN];
-// }
-int ypkt_valid_msg(yivopkt_t *y);
+// bool ypkt_init(ypkt_t *y, uint16_t size);
+// ypkt_t *ypkt_init(uint16_t size);
+ypkt_t *ypkt_create(const uint8_t msgid, uint16_t size);
+ypkt_t *ypkt_free(ypkt_t *y);
+int ypkt_pack(ypkt_t *y, uint8_t *data, const uint16_t len);
+int ypkt_unpack(ypkt_t *y, void *dst, uint16_t size);
+int ypkt_valid_msg(ypkt_t *y);
+
+extern const uint8_t crc8_table[256];

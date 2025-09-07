@@ -23,9 +23,8 @@ SOFTWARE.
 ******************************************************************************/
 #pragma once
 
-#ifndef __YIVO_HPP__
-  #define __YIVO_HPP__
-#endif
+#include <stdbool.h>
+#include <stdint.h>
 
 #define YIVO_HEADER_0 '$'
 #define YIVO_HEADER_1 'K'
@@ -37,11 +36,10 @@ SOFTWARE.
 #define YIVO_PKT_HEADER_ERR -5
 #define YIVO_PKT_ID_ERR -6
 #define YIVO_PKT_CS_ERR -7
-
-#include <stdbool.h>
-#include <stdint.h>
+#define YIVO_BUFFER_NULL -8
 
 #define YMSG __attribute__((packed))
 
-#include "yivo/parser.h"
+#include "yivo/debug.h"
+#include "yivo/yivopars.h"
 #include "yivo/yivopkt.h"

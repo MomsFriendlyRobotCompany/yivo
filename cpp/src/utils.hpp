@@ -29,7 +29,7 @@ SOFTWARE.
 
 // namespace yv {
 static
-std::string to_string(const yivo::yivopkt_t& msg) {
+std::string to_string(const yivo::ypkt_t& msg) {
   std::string s;
   if (msg.size() == 0) return s;
   s += (char)msg[0];
@@ -45,6 +45,6 @@ std::string to_string(const yivo::yivopkt_t& msg) {
 // }
 
 // inline
-// std::ostream &operator<<(std::ostream &os, yivopkt_t const &msg) {
+// std::ostream &operator<<(std::ostream &os, ypkt_t const &msg) {
 //   return os << to_string(msg);
 // }

@@ -2,7 +2,7 @@
 
 # Yivo
 
-## `yivopkt_t`
+## `ypkt_t`
 
 This is the serialized message that is sent across the wire.
 
@@ -12,7 +12,7 @@ size_t msg_size = sizeof(my_message);
 
 // create a custom struct to hold message, this is reusable
 // for this message type only
-yivopkt_t *ymsg = ypkt_create(msg_size);
+ypkt_t *ymsg = ypkt_create(msg_size);
 // pack message, id=10
 ypkt_pack(ymsg, 10, &my_message, msg_size);
 
@@ -20,21 +20,21 @@ ypkt_pack(ymsg, 10, &my_message, msg_size);
 send(ymsg.data, ymsg.size);
 ```
 
-## `yivo_parser_t`
+## `ypars_t`
 
 This is the functions that parse incoming bytes and find the message
 in the data stream.
 
 ```c
-yivo_parser_t *pars = yivo_parse_create();
+ypars_t *pars = ypars_create();
 
 for (int i=0; i<BUFFER_SIZE; ++i) {
     uint8_t b = buffer[i];
-    int msg_id = yivo_parse(pars, b);
+    int msg_id = yivopars(pars, b);
 
     if (msg_id == 10) {
         my_msg_t m;
-        yivo_parse_get(pars, &m, sizeof(m));
+        ypars_get(pars, &m, sizeof(m));
         // do something with m
     }
     if (msg_id == 11) // get message
@@ -61,20 +61,6 @@ typedef struct YMSG {
 
 For testing, you need to use `scruffy` and do `ln -s ~/github/scruffy scruffy`
 in `scruffy/extlibs` folder.
-
-## ToDo
-
-Grok suggested:
-
-- [ ] In `parse.c` incrementally calculate checksum
-    - If checksum fails, reset parser and return 0
-    - Enforce msg_id = 0 as an invalid, reset parser and return 0 
-- [ ] Fix mix of snake case and cammel case
-- [ ] Instead of XOR for checksum, upgrade to CRC-8
-- [ ] Use a fixed buffer instead of a dynamic buffer for messages
-- [ ] Add a function for parsing that accepts a fixed buffer in addition
-    to the streaming byte-by-byte function
-- [ ] Add ID and size to checksum
 
 # MIT License
 

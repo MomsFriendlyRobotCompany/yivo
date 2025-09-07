@@ -39,28 +39,28 @@ extern "C" {
 // add some other comments
 // and this too
 typedef enum {
-  BATTERY_TECH_E_UNKNOWN = 0,  // Unknown battery technology 
-  BATTERY_TECH_E_NIMH = -1,  // Nickel-Metal Hydride battery 
-  BATTERY_TECH_E_LION = -2,  // Lithium-ion battery 
-  BATTERY_TECH_E_LIPO = 3,  // Lithium Polymer battery 
-  BATTERY_TECH_E_LIFE = 4,  // Lithium Iron Phosphate battery 
-  BATTERY_TECH_E_NICD = 5,  // Nickel-Cadmium battery 
-  BATTERY_TECH_E_LIMN = 6,  // Lithium Manganese Dioxide battery 
-  BATTERY_TECH_E_TERNARY = 7,  // Ternary Lithium battery 
-  BATTERY_TECH_E_VRLA = 8 // Valve Regulated Lead-Acid battery 
+  BATTERY_TECH_UNKNOWN = 0,  // Unknown battery technology 
+  BATTERY_TECH_NIMH = -1,  // Nickel-Metal Hydride battery 
+  BATTERY_TECH_LION = -2,  // Lithium-ion battery 
+  BATTERY_TECH_LIPO = 3,  // Lithium Polymer battery 
+  BATTERY_TECH_LIFE = 4,  // Lithium Iron Phosphate battery 
+  BATTERY_TECH_NICD = 5,  // Nickel-Cadmium battery 
+  BATTERY_TECH_LIMN = 6,  // Lithium Manganese Dioxide battery 
+  BATTERY_TECH_TERNARY = 7,  // Ternary Lithium battery 
+  BATTERY_TECH_VRLA = 8 // Valve Regulated Lead-Acid battery 
 } battery_tech_e;
 
 typedef enum {
-  FRAMES_E_ROBOT = 1, 
-  FRAMES_E_IMU = 2, 
-  FRAMES_E_CAMERA = 3
+  FRAMES_ROBOT = 1, 
+  FRAMES_IMU = 2, 
+  FRAMES_CAMERA = 3
 } frames_e;
 
 typedef enum {
-  CALIBRATION_E_ACCEL = 1, 
-  CALIBRATION_E_GYRO = 2, 
-  CALIBRATION_E_MAG = 4, 
-  CALIBRATION_E_MOTORS = 8
+  CALIBRATION_ACCEL = 1, 
+  CALIBRATION_GYRO = 2, 
+  CALIBRATION_MAG = 4, 
+  CALIBRATION_MOTORS = 8
 } calibration_e;
 
 
@@ -78,8 +78,8 @@ typedef struct __attribute__((packed)) {
 } vec3f_t;
 
 typedef struct __attribute__((packed)) {
-  float w; 
-  float x; 
+  float w;  // real 
+  float x;  // img 
   float y; 
   float z; 
 } quaternion_t;
@@ -115,7 +115,7 @@ typedef struct __attribute__((packed)) {
 // This is the result of a calibration command
 typedef struct __attribute__((packed)) {
   float cal[12];  // cal matrix Ax+B 
-  calibration_e cal;  // which sensor 
+  calibration_e sensor;  // which sensor 
 } cal_params_t;
 
 

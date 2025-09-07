@@ -120,7 +120,7 @@ public:
 
   ~Parser() {}
 
-  void get_packet(yivopkt_t& p) {
+  void get_packet(ypkt_t& p) {
     p.fill(buffer.data(), buffer.size());
   }
 

@@ -11,11 +11,11 @@ struct __attribute__((packed)) msg_t {
   uint32_t b; // 4
 }; // 5 bytes
 
-TEST(yivo, yivopkt_t) {
+TEST(yivo, ypkt_t) {
   Parser yivo(4);
   msg_t m{105, 1000};
 
-  yivopkt_t msg;
+  ypkt_t msg;
   msg.pack(10, reinterpret_cast<uint8_t *>(&m), sizeof(m));
   // for (const uint8_t& c: msg) printf("%d,", (int)c);
   // printf("%s\n", yv::to_string(msg).c_str());
@@ -35,7 +35,7 @@ TEST(yivo, yivopkt_t) {
 TEST(yivo, pack_unpack) {
   msg_t m{105, 1000};
 
-  yivopkt_t msg;
+  ypkt_t msg;
   msg.pack(10, (uint8_t*)&m, sizeof(m));
   EXPECT_TRUE(msg.valid_msg());
 
@@ -48,7 +48,7 @@ TEST(yivo, read) {
   Parser yivo;
   msg_t m{40, 3100};
 
-  yivopkt_t msg;
+  ypkt_t msg;
   msg.pack(20, (uint8_t*)&m, sizeof(msg_t));
   EXPECT_EQ(msg.size(), sizeof(msg_t) + YIVO_OVERHEAD);
   EXPECT_TRUE(msg.valid_msg());
@@ -67,7 +67,7 @@ TEST(yivo, read) {
   // printf("id %d\n", (int)id);
   EXPECT_EQ(id, 20);
 
-  yivopkt_t p;
+  ypkt_t p;
   yivo.get_packet(p);
   msg_t m2 = p.unpack<msg_t>();
   EXPECT_EQ(m.a, m2.a);
@@ -76,7 +76,7 @@ TEST(yivo, read) {
 
 TEST(yivo, bad_packets) {
   uint8_t a[]{'X','X',5,0,20,1,2,33};
-  yivopkt_t p;
+  ypkt_t p;
   p.fill(a, sizeof(a));
   EXPECT_FALSE(p.valid_msg());
 

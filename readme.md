@@ -23,28 +23,41 @@ Trying to standardize the way I access serial data from sensors and stuff.
 |----------|-----------------|---------------------------------------------------|
 | Header   | `uint8_t[2]`    | default `$K`                                      |
 | Size     | `uint16_t`      | 0-65,535 bytes, stored as [L,H] => `(H << 8) | L` |
-| Type     | `uint8_t`       | 255 message IDs, `0` is not allowed as an ID      |
-| Checksum | `uint8_t`       | XOR of all Data bytes                             |
+| ID       | `uint8_t`       | 255 message IDs, `0` is not allowed as an ID      |
+| Checksum | `uint8_t`       | CRC8 of all Size, Type, and Data bytes            |
 | Data     | `uint8_t[Size]` | payload data array                                |
 
-| 0 | 1 | 2 | 3 | 4 | 5  | 0 - N|
-|---|---|---|---|---|----|------|
-|`$`|`K`| L | H | T | CS | Data |
+| 0 | 1 | 2 | 3 | 4  | 5  | 0 - N|
+|---|---|---|---|----|----|------|
+|`$`|`K`| L | H | ID | CS | Data |
+
+| Function    | C                          | Python             |
+|-------------|----------------------------|--------------------|
+| Create      | `ypars_t* ypars_create()`  | `YivoParser()`     |
+| Free        | `ypars_t* ypars_free()`    |                    |
+| Read byte   | `uint8_t ypars_stream()`   | `YivoParser.parse()` |
+| Read buffer | `uint8_t ypars_buffer()`   |                    |
+| Get msg     | `int32_t ypars_get()`      | `YivoParser.get_msg()` |
+| Create Pkt  | `ypkt_t* ypkt_create()`    | `YivoPkt()`        |
+| Free Pkt    | `ypkt_t* ypkt_free()`      |                    |
+| Pack        | `int ypkt_pack()`          | `YivoPkt.pack()`   |
+| UnPack      | `int ypkt_unpack()`        | `YivoPkt.unpack()` |
+| Valid msg   | `int ypkt_valid_msg()`     | `YivoPkt.valid_msg()` |
 
 ## Byte Conversions
 
 | Type     | Bytes | Format | Python  | C/C++         |
 |----------|-------|--------|---------|---------------|
-| `uint8`  | 1     | `B`    | `int`   | `uint8_t`
-| `uint16` | 2     | `H`    | `int`   | `uint16_t`
-| `uint32` | 4     | `I`    | `int`   | `uint32_t`
-| `uint64` | 8     | `Q`    | `int`   | `uint64_t`
-| `int8`   | 1     | `b`    | `int`   | `int8_t`
-| `int16`  | 2     | `h`    | `int`   | `int16_t`
-| `int32`  | 4     | `i`    | `int`   | `int32_t`
-| `int64`  | 8     | `q`    | `int`   | `int64_t`
-| `float`  | 4     | `f`    | `float` | `float`
-| `double` | 8     | `d`    | `float` | `double`
+| `uint8`  | 1     | `B`    | `int`   | `uint8_t`     |
+| `uint16` | 2     | `H`    | `int`   | `uint16_t`    |
+| `uint32` | 4     | `I`    | `int`   | `uint32_t`    |
+| `uint64` | 8     | `Q`    | `int`   | `uint64_t`    |
+| `int8`   | 1     | `b`    | `int`   | `int8_t`      |
+| `int16`  | 2     | `h`    | `int`   | `int16_t`     |
+| `int32`  | 4     | `i`    | `int`   | `int32_t`     |
+| `int64`  | 8     | `q`    | `int`   | `int64_t`     |
+| `float`  | 4     | `f`    | `float` | `float`       |
+| `double` | 8     | `d`    | `float` | `double`      |
 
 # MIT License
 

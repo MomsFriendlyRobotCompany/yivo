@@ -13,7 +13,7 @@ struct Sensor {
 
 int main() {
   Parser yivo(16);
-  yivopkt_t ret;
+  ypkt_t ret;
   Sensor sen;
   sen.f[0] = 1.1f;
   sen.f[1] = 20.02f;
@@ -32,7 +32,7 @@ int main() {
 
   // double check we get entire message
   if (id == 0) cout << "FAIL read" << endl;
-  yivopkt_t p;
+  ypkt_t p;
   yivo.get_packet(p);
   // turn bytes into message struct
   Sensor s2 = p.unpack<Sensor>();

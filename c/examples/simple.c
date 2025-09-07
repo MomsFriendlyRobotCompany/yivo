@@ -8,15 +8,18 @@ typedef struct YMSG {
   int a, b;
 } test_t;
 
+#define BUFFER_SIZE 32
+uint8_t buffer[BUFFER_SIZE];
+
 int main() {
   bool ok;
   test_t t = {-10, 300};
   test_t tt;
   uint32_t size = sizeof(test_t);
 
-  yivopkt_t *msg = ypkt_create(size);
+  ypkt_t *msg = ypkt_create(size);
 
-  yivo_parser_t *pars = yivo_parse_create();
+  ypars_t *pars = ypars_create(buffer, BUFFER_SIZE);
 
   int err = ypkt_pack(msg, 10, (uint8_t *)&t, sizeof(t));
   if (err < 0) printf("bad pack: %d\n", err);
@@ -24,20 +27,20 @@ int main() {
   printf("valid message: %d\n", ypkt_valid_msg(msg));
 
   // bad data --------------------
-  yivo_parse(pars, 1);
-  yivo_parse(pars, '$');
-  yivo_parse(pars, 72);
-  yivo_parse(pars, '$');
-  yivo_parse(pars, '$');
-  yivo_parse(pars, 212);
+  yivopars(pars, 1);
+  yivopars(pars, '$');
+  yivopars(pars, 72);
+  yivopars(pars, '$');
+  yivopars(pars, '$');
+  yivopars(pars, 212);
 
   for (int i = 0; i < msg->size + 6; ++i) {
     uint8_t b = msg->data[i];
     // printf("0x%02X\n", b);
-    uint8_t mid = yivo_parse(pars, b);
+    uint8_t mid = yivopars(pars, b);
     if (mid > 0) {
       printf("Found msg id: %u\n", mid);
-      int err = yivo_parse_get(pars, (uint8_t *)&tt, sizeof(test_t));
+      int err = ypars_get(pars, (uint8_t *)&tt, sizeof(test_t));
       if (err < 0) printf("error: %d\n", err);
       break;
     }

@@ -2,7 +2,7 @@
 
 # Yivo
 
-- `yivopkt_t`: packs/unpacks (or encodes/decodes) c `structs` for transmission
+- `ypkt_t`: packs/unpacks (or encodes/decodes) c `structs` for transmission
     - `uint8_t* data()`: get point to buffer
     - `uint16_t size()`: get size of buffer
     - `uint8_t msg_id()`: get message id
@@ -10,7 +10,7 @@
     - `T unpack<T>()`: decode a binary message to a `struct`
 - `Yivo`: basically a state machine for reading in serial data and determining when you have a message to read
     - `uint8_t parse(c)`: read in a byte at a time and return an ID or 0
-    - `void get_packet(pkt)`: copy binary message to `yivopkt_t`
+    - `void get_packet(pkt)`: copy binary message to `ypkt_t`
 
 ```cpp
 #include <yivo.hpp>
@@ -21,7 +21,7 @@ struct B {int b;}; // id 2
 
 Yivo yivo;
 
-yivopkt_t pkt;
+ypkt_t pkt;
 pkt.pack(1, A{1}, sizeof(A));
 
 serial_send(pkt.data(), pkt.size()); // somehow send a message
@@ -31,7 +31,7 @@ while (id == 0) {
     uint8_t b = serial_read(); // get a byte from somewhere
     id = yivo.parse(b);
 }
-yivopkt_t rep;
+ypkt_t rep;
 yivo.get_packet(rep);
 
 // then decode the received message
