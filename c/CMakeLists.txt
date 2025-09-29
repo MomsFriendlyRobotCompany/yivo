@@ -21,7 +21,7 @@ if(PROJECT_IS_TOP_LEVEL)
   message(STATUS " ${PROC}")
   message(STATUS "-------------------------------------")
 
-  set(BUILD_EXAMPLES OFF)
+  set(BUILD_EXAMPLES ON)
   set(BUILD_SCRUFFY ON)
 else()
   message(STATUS "-> ${PROJECT_NAME} is submodule")

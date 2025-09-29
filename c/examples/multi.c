@@ -11,7 +11,7 @@
 static uint8_t buffer[BUFFER_SIZE];
 
 #define IBUFFER_SIZE 32
-uint8_t ibuffer[IBUFFER_SIZE];
+// uint8_t ibuffer[IBUFFER_SIZE];
 
 // typedef struct __attribute__((packed)) {
 typedef struct YMSG {
@@ -28,13 +28,13 @@ typedef struct YMSG {
 int main() {
   bool ok;
   test_t t  = {.a = -10, .b = 300};
-  ypkt_t *a = ypkt_create(sizeof(test_t));
-  if (ypkt_pack(a, 10, (uint8_t *)&t, sizeof(t)) < 0) printf("bad pack\n");
+  ypkt_t *a = ypkt_create(10, sizeof(test_t));
+  if (ypkt_pack(a, (uint8_t *)&t, sizeof(t)) < 0) printf("bad pack\n");
   printf("a size: %u\n", a->size);
 
   test2_t tt = {999, -3.14, 'a'};
-  ypkt_t *b  = ypkt_create(sizeof(test2_t));
-  if (ypkt_pack(b, 20, (uint8_t *)&tt, sizeof(tt)) < 0) printf("bad pack\n");
+  ypkt_t *b  = ypkt_create(20, sizeof(test2_t));
+  if (ypkt_pack(b, (uint8_t *)&tt, sizeof(tt)) < 0) printf("bad pack\n");
   printf("b size: %u\n", b->size);
 
   printf("--------------\n");
@@ -49,22 +49,22 @@ int main() {
 
   // ypars_t pars;
   // ypars_init(pars);
-  ypars_t *pars = ypars_create(ibuffer, IBUFFER_SIZE);
+  ypars_t *pars = ypars_create(IBUFFER_SIZE);
 
   // bad data --------------------
-  yivopars(pars, 1);
-  yivopars(pars, '$');
-  yivopars(pars, 72);
-  yivopars(pars, '$');
-  yivopars(pars, '$');
-  yivopars(pars, 212);
+  ypars_stream(pars, 1);
+  ypars_stream(pars, '$');
+  ypars_stream(pars, 72);
+  ypars_stream(pars, '$');
+  ypars_stream(pars, '$');
+  ypars_stream(pars, 212);
 
   for (int i = 0; i < BUFFER_SIZE; ++i) {
     uint8_t byte = buffer[i];
     char ch      = ((byte > 32) && (byte < 127)) ? (char)byte : '-';
     // printf("%d: 0x%02X  %c\n", i, byte, ch);
 
-    uint8_t mid = yivopars(pars, byte);
+    uint8_t mid = ypars_stream(pars, byte);
     if (mid == 10) {
       // printf("Found msg id: %d\n", (int)mid);
       test_t ans;

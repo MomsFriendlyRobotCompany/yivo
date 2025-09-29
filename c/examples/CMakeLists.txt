@@ -4,7 +4,7 @@
 list(APPEND apps
     simple
     multi
-    crc
+    udp
 )
 
 # message(STATUS "yivo::Examples ----------------------")
