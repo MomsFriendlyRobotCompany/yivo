@@ -66,6 +66,74 @@ Generate messages for python and C.
 | `float`  | 4 | `f` | `float` | `float`
 | `double` | 8 | `d` | `float` | `double`
 
+## ToDo
+
+- Look at avro-like format for message definitions, might be easier to maintain:
+    ```yaml
+    {
+        "namespace": "drone",
+        "newtypes": [
+            {
+                "name": "vec3f_t",
+                "fields": [
+                    {"name": "x", "type": "float", "default": 0.0},
+                    {"name": "y", "type": "float", "default": 0.0},
+                    {"name": "z", "type": "float", "default": 0.0}
+                ]
+            },
+            {
+                "name": "quaternion_t",
+                "doc": "Orientation of a 3D body represented by 4D coordinates",
+                "fields": [
+                    {"name": "w", "type": "float", "default": 1.0, "doc": "real"},
+                    {"name": "x", "type": "float", "default": 0.0, "doc": "img x"},
+                    {"name": "y", "type": "float", "default": 0.0, "doc": "img y"},
+                    {"name": "z", "type": "float", "default": 0.0, "doc": "img z"}
+                ]
+            },
+            {
+                "name": "header_t",
+                "fields": [
+                    {"name": "frame", "type": "char", "array": 16},
+                    {"name": "timestamp", "type": "uint64"}
+                ]
+            }
+        ],
+        "enums": [
+            {
+                "name": "frames",
+                "doc": "Coordinate frames of where sensors data is captured",
+                "symbols": [
+                    "body",
+                    "imu"
+                ]
+            }
+        ],
+        "messages": [
+            {
+                "name": "imu_t",
+                "id": 100,
+                "doc": "This is \
+                a multi-line doc \
+                string test",
+                "fields": [
+                    {"name": "a", "type": "vec3f_t"},
+                    {"name": "g", "type": "vec3f_t"},
+                    {"name": "m", "type": "vec3f_t"},
+                    {"name": "q", "type": "quaternion_t"},
+                    {"name": "frame", "enum": "frames"}
+                ]
+            }
+        ]
+    }
+    ```
+- types:
+    - `message`: a message
+        - `id`: id number for message, needs to be unique
+    - `newtype`: custom data type that can be used as a `type` in a `message`
+    for data
+    - `enum`: an enum ... should it always start from 0 and increment? Should
+    you be able to set values?
 
 # MIT License
 
