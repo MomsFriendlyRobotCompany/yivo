@@ -3,15 +3,15 @@
 #include <stdlib.h>
 #include <string.h> // memcpy, memset
 
-typedef enum : uint8_t {
-  H0_STATE,   // Header byte 0
-  H1_STATE,   // Header byte 1
-  SZ0_STATE,  // Size low byte
-  SZ1_STATE,  // Size high byte
-  ID_STATE,   // Message ID
-  CS_STATE,   // Checksum
-  DATA_STATE, // Payload data
-} read_state_e;
+// typedef enum : uint8_t {
+//   H0_STATE,   // Header byte 0
+//   H1_STATE,   // Header byte 1
+//   SZ0_STATE,  // Size low byte
+//   SZ1_STATE,  // Size high byte
+//   ID_STATE,   // Message ID
+//   CS_STATE,   // Checksum
+//   DATA_STATE, // Payload data
+// } read_state_e;
 
 ypars_t *ypars_create(uint16_t max_size) {
   // if (buffer == NULL || max_size == 0) return NULL;
@@ -146,11 +146,32 @@ uint8_t ypars_buffer(ypars_t *y, uint8_t *msg_buffer, uint32_t buffer_size, uint
     uint8_t b = msg_buffer[i];
     *loc += 1;
     uint8_t msg_id = ypars_stream(y, b);
-    if (msg_id > 0) return msg_id;
+    if (msg_id > 0) {
+      return msg_id;
+    }
   }
 
   return 0;
 }
+
+// uint8_t ypars_buffer(ypars_t *y, uint8_t *msg_buffer, uint32_t buffer_size) {
+//   if (msg_buffer == NULL) return YIVO_BUFFER_NULL;
+//   if (y == NULL || y->payload == NULL) return YIVO_PARSER_NULL;
+
+//   y->found_loc = 0; // buffer_loc?
+
+//   for (int i = 0; i < buffer_size; ++i) {
+//     uint8_t b = msg_buffer[i];
+//     // *loc += 1;
+//     uint8_t msg_id = ypars_stream(y, b);
+//     if (msg_id > 0) {
+//       y->found_loc = i;
+//       return msg_id;
+//     }
+//   }
+
+//   return 0;
+// }
 
 int32_t ypars_get(ypars_t *y, uint8_t *buffer, uint16_t size) {
   if (buffer == NULL) return YIVO_BUFFER_NULL;
@@ -162,3 +183,16 @@ int32_t ypars_get(ypars_t *y, uint8_t *buffer, uint16_t size) {
 
   return 0;
 }
+
+// int32_t ypars_get(ypars_t *y, uint8_t *buffer, uint16_t size) {
+//   if (buffer == NULL) return YIVO_BUFFER_NULL;
+//   if (y == NULL || y->payload == NULL) return YIVO_PARSER_NULL;
+//   if (size != y->payload_size) return YIVO_SIZE_ERROR;
+
+//   memcpy(buffer, y->payload, size);
+//   uint32_t len = y->found_loc + size;
+//   memmove(buffer, &buffer[len], )
+//   YIVO_DEBUG(">> parse_get y->pl: %p\n", y->payload);
+
+//   return 0;
+// }

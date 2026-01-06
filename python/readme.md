@@ -105,6 +105,7 @@ Generate messages for python and C.
                 "doc": "Coordinate frames of where sensors data is captured",
                 "symbols": [
                     "body",
+                    {"name": "oven", "value": 10, "doc": "this is a test"},
                     "imu"
                 ]
             }

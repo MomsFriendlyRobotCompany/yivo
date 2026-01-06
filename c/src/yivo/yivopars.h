@@ -5,6 +5,32 @@
 #include <stdint.h>
 #include <string.h> // memcpy, memset
 
+
+
+typedef enum : uint8_t {
+  H0_STATE,   // Header byte 0
+  H1_STATE,   // Header byte 1
+  SZ0_STATE,  // Size low byte
+  SZ1_STATE,  // Size high byte
+  ID_STATE,   // Message ID
+  CS_STATE,   // Checksum
+  DATA_STATE, // Payload data
+} read_state_e;
+
+typedef struct {
+  uint8_t *data;
+  uint16_t size;
+  uint16_t index;
+} buffer_info_t;
+
+typedef struct {
+  uint8_t id;
+  uint8_t cs;                // Stored checksum
+  uint8_t computed_crc;      // Incrementally computed CRC
+  uint8_t ln, hn;        // Stored size low/high, ID for CRC
+  uint16_t size;
+} msg_info_t;
+
 /**
  * @brief Parser state for streaming Yivo packet deserialization.
  */
@@ -12,12 +38,13 @@ typedef struct {
   uint8_t *payload;          // User-supplied fixed buffer for payload
   uint16_t payload_size;     // Size of current payload
   uint16_t max_payload_size; // Maximum size of the user-supplied buffer
-  uint8_t readState;         // Parser state
+  read_state_e readState;         // Parser state
   uint8_t buffer_msgid;      // Detected message ID
   uint16_t index;            // Index into payload
   uint8_t cs;                // Stored checksum
   uint8_t computed_crc;      // Incrementally computed CRC
   uint8_t ln, hn, id;        // Stored size low/high, ID for CRC
+  // uint32_t found_loc;        // index where message was found
 } ypars_t;
 
 /**
@@ -46,6 +73,7 @@ ypars_t *ypars_create(uint16_t max_size);
 uint8_t ypars_stream(ypars_t *y, uint8_t c);
 uint8_t ypars_buffer(ypars_t *y, uint8_t *buffer, uint32_t buffer_size,
                      uint32_t *loc);
+// uint8_t ypars_buffer(ypars_t *y, uint8_t *buffer, uint32_t buffer_size);
 // uint8_t ypars_find(ypars_t *y);
 
 /**
